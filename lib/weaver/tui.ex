@@ -13,13 +13,12 @@ defmodule Weaver.TUI do
     {:ok, %{}}
   end
 
-  # TODO: display tool calls
-
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
   def handle_info(msg = %{role: "assistant"}, state) do
     show_thinking(msg)
     show_content(msg)
+    show_tool_calls(msg)
     prompt()
 
     {:noreply, state}
@@ -65,6 +64,14 @@ defmodule Weaver.TUI do
   defp show_thinking(_), do: nil
 
   defp show_content(%{content: content}), do: Marcli.render(content) |> output()
+
+  defp show_tool_calls(%{tool_calls: tool_calls}) do
+    [:yellow, Enum.map(tool_calls, fn call -> "- " <> call[:function][:name] <> "\n" end)]
+    |> IO.ANSI.format()
+    |> output()
+  end
+
+  defp show_tool_calls(_), do: nil
 
   defp user_input("/exit") do
     System.stop(0)
