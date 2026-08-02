@@ -28,7 +28,9 @@ defmodule Weaver.MixProject do
       {:rustler_precompiled, "~> 0.8.2"},
       {:makeup_elixir, "~> 1.0.1"},
       {:makeup_erlang, "~> 1.1.0"},
-      {:makeup_eex, "~> 2.0.2"}
+      {:makeup_eex, "~> 2.0.2"},
+      {:jason, "~> 1.4"},
+      {:req, "~> 0.5.0"}
     ]
   end
 end

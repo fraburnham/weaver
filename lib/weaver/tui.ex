@@ -14,6 +14,7 @@ defmodule Weaver.TUI do
   end
 
   # TODO: display tool calls
+  # TODO: optional/toggleable show thinking
 
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
@@ -50,11 +51,11 @@ defmodule Weaver.TUI do
     |> output()
   end
 
-  def prompt do
+  defp prompt do
     send(self(), :prompt)
   end
 
-  def output(content) do
+  defp output(content) do
     IO.puts("")
     IO.puts(content)
     IO.puts("")
@@ -70,7 +71,7 @@ defmodule Weaver.TUI do
     |> IO.ANSI.format()
     |> output()
 
-    send(self(), :prompt)
+    prompt()
   end
 
   # If the user input wasn't a slash command broadcast it

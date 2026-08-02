@@ -26,19 +26,20 @@ defmodule Weaver.LLM do
   end
 
   # Send a request to the api (using an api module)
-  defp request(_state) do
+  defp request(state) do
     # TODO: Expect the api layer to return a single response w/ maybe some metadata about token usage
-    # TODO: this fn owns reversing the message order
-
-    # Mock response
-    %{
-      role: "assistant",
-      content: "This is only a response."
-    }
+    state[:context]
+    |> context_to_api_context()
+    |> Weaver.Api.Ollama.chat()
+    |> Map.get(:message)
   end
 
   # Add a message to the context
   defp add_message(msg, state) do
     %{state | context: %{state[:context] | messages: [msg | state[:context][:messages]]}}
+  end
+
+  defp context_to_api_context(context) do
+    %{context | messages: Enum.reverse(context[:messages])}
   end
 end
