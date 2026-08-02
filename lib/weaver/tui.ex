@@ -1,27 +1,27 @@
 defmodule Weaver.TUI do
   use GenServer
 
-  def start_link(_args), do: GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(_state) do
+  def init(config) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
     header()
     prompt()
 
-    {:ok, %{}}
+    {:ok, config}
   end
 
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
-  def handle_info(msg = %{role: "assistant"}, state) do
-    show_thinking(msg)
+  def handle_info(msg = %{role: "assistant"}, config) do
+    show_thinking(config[:show_thinking], msg)
     show_content(msg)
     show_tool_calls(msg)
     prompt()
 
-    {:noreply, state}
+    {:noreply, config}
   end
 
   @impl true
@@ -57,11 +57,10 @@ defmodule Weaver.TUI do
     IO.puts("")
   end
 
-  # TODO: make showing thinking optional
-  defp show_thinking(%{thinking: thinking}),
+  defp show_thinking(true, %{thinking: thinking}),
     do: [:faint, :cyan, thinking] |> IO.ANSI.format() |> output()
 
-  defp show_thinking(_), do: nil
+  defp show_thinking(_, _), do: nil
 
   defp show_content(%{content: content}), do: Marcli.render(content) |> output()
 

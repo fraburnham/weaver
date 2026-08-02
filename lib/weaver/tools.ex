@@ -1,5 +1,5 @@
 defmodule Weaver.Tools do
   use GenServer
-  def start_link(_), do: GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-  def init(state), do: {:ok, state}
+  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
+  def init(_), do: {:ok, %{}}
 end

@@ -1,7 +1,7 @@
 defmodule Weaver.History do
   use GenServer
 
-  def start_link(_), do: GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
   def init(_) do

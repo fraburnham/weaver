@@ -1,13 +1,16 @@
 defmodule Weaver.LLM do
   use GenServer
+  alias Weaver.LLM
 
-  def start_link(_), do: GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+  defstruct model: nil, api: nil, base_url: nil, context: nil
+
+  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(_) do
+  def init(config = %LLM{model: model, api: _, base_url: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
-    {:ok, %{context: Weaver.LLM.Context.initial_context()}}
+    {:ok, %LLM{config | context: Weaver.LLM.Context.initial_context(%{model: model})}}
   end
 
   # Messages from tool calls or user prompts have to be sent to the llm
@@ -26,17 +29,16 @@ defmodule Weaver.LLM do
   end
 
   # Send a request to the api (using an api module)
-  defp request(state) do
-    # TODO: Expect the api layer to return a single response w/ maybe some metadata about token usage
-    state[:context]
+  defp request(%{context: context, base_url: base_url, api: api}) do
+    context
     |> context_to_api_context()
-    |> Weaver.Api.Ollama.chat()
+    |> api.chat(%{base_url: base_url})
     |> Map.get(:message)
   end
 
   # Add a message to the context
   defp add_message(msg, state) do
-    %{state | context: %{state[:context] | messages: [msg | state[:context][:messages]]}}
+    %{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
   end
 
   defp context_to_api_context(context) do

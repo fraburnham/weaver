@@ -1,17 +1,18 @@
 defmodule Weaver.LLM.Context do
-  # TODO: This library manages context updates for the llm genserver
-  def initial_context() do
+  def initial_context(%{model: model}) do
     %{
-      # TODO: model from config/input
-      model: "gemma4:e2b",
+      model: model,
       messages: [
         %{
           role: "system",
-          # TODO: pull from config
+          # TODO: pull from config this and ask the tools module about its stuff (use call/cast or something so I can send it off as a message and the started process can
+          # track where the tool root is instead of crossing config?)
           content: "This is only a system prompt test"
         }
       ],
       tools: []
     }
   end
+
+  # TODO: get rid of this. Create a personas.ex module like tools.ex. It'll handle loading persona details. They'll be passed in to the llm service's startup.
 end
