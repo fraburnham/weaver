@@ -18,9 +18,9 @@ defmodule Weaver.TUI do
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
   def handle_info(%{role: "assistant", content: content}, state) do
-    IO.puts("")
-    IO.puts(Marcli.render(content))
-    IO.puts("")
+    content
+    |> Marcli.render()
+    |> output()
 
     prompt()
 
@@ -35,7 +35,8 @@ defmodule Weaver.TUI do
   # Display a prompt and broadcast the user input
   @impl true
   def handle_info(:prompt, state) do
-    IO.ANSI.format([:red, "> "])
+    [:red, "> "]
+    |> IO.ANSI.format()
     |> IO.gets()
     |> String.trim()
     |> user_input()
@@ -44,18 +45,32 @@ defmodule Weaver.TUI do
   end
 
   def header do
-    [:bright, "\nType '/exit' to quit\n"]
+    [:bright, "Type '/exit' to quit"]
     |> IO.ANSI.format()
-    |> IO.puts()
+    |> output()
   end
 
   def prompt do
     send(self(), :prompt)
   end
 
+  def output(content) do
+    IO.puts("")
+    IO.puts(content)
+    IO.puts("")
+  end
+
   defp user_input("/exit") do
     System.stop(0)
     Process.sleep(:infinity)
+  end
+
+  defp user_input(<<"/", command::binary>>) do
+    [:bright, :red, "Unknown command: ", command]
+    |> IO.ANSI.format()
+    |> output()
+
+    send(self(), :prompt)
   end
 
   # If the user input wasn't a slash command broadcast it
