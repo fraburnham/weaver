@@ -15,7 +15,7 @@ defmodule Weaver.LLM do
 
   # Messages from tool calls or user prompts have to be sent to the llm
   @impl true
-  def handle_info(msg = %{role: role}, state) when role in ["user", "tool"] do
+  def handle_info(msg = %{role: role}, state = %LLM{}) when role in ["user", "tool"] do
     state = add_message(msg, state)
     response = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
@@ -29,7 +29,7 @@ defmodule Weaver.LLM do
   end
 
   # Send a request to the api (using an api module)
-  defp request(%{context: context, base_url: base_url, api: api}) do
+  defp request(%LLM{context: context, base_url: base_url, api: api}) do
     context
     |> context_to_api_context()
     |> api.chat(%{base_url: base_url})
@@ -37,8 +37,8 @@ defmodule Weaver.LLM do
   end
 
   # Add a message to the context
-  defp add_message(msg, state) do
-    %{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
+  defp add_message(msg, state = %LLM{}) do
+    %LLM{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
   end
 
   defp context_to_api_context(context) do

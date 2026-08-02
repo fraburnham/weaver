@@ -1,10 +1,13 @@
 defmodule Weaver.TUI do
   use GenServer
+  alias Weaver.TUI
+
+  defstruct show_thinking: false
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config) do
+  def init(config = %TUI{}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
     header()
@@ -15,8 +18,9 @@ defmodule Weaver.TUI do
 
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
-  def handle_info(msg = %{role: "assistant"}, config) do
-    show_thinking(config[:show_thinking], msg)
+  def handle_info(msg = %{role: "assistant"}, config = %TUI{}) do
+    # TODO: a message module so that I can define a message struct? probably will help with consistency later
+    show_thinking(config.show_thinking, msg)
     show_content(msg)
     show_tool_calls(msg)
     prompt()
@@ -25,13 +29,13 @@ defmodule Weaver.TUI do
   end
 
   @impl true
-  def handle_info(%{role: _role}, state) do
+  def handle_info(%{role: _role}, state = %TUI{}) do
     {:noreply, state}
   end
 
   # Display a prompt and broadcast the user input
   @impl true
-  def handle_info(:prompt, state) do
+  def handle_info(:prompt, state = %TUI{}) do
     [:red, "> "]
     |> IO.ANSI.format()
     |> IO.gets()
