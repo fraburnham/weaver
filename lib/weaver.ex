@@ -1,2 +1,0 @@
-defmodule Weaver do
-end

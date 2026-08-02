@@ -20,11 +20,15 @@ defmodule Weaver.MixProject do
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+      {:phoenix_pubsub, "~> 2.0"},
+      {:marcli, "~> 0.1.0"},
+      {:makeup_syntect, "~> 0.1.4"},
+      {:rustler_precompiled, "~> 0.8.2"},
+      {:makeup_elixir, "~> 1.0.1"},
+      {:makeup_erlang, "~> 1.1.0"},
+      {:makeup_eex, "~> 2.0.2"}
     ]
   end
 end
