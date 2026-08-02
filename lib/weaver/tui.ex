@@ -35,17 +35,18 @@ defmodule Weaver.TUI do
   # Display a prompt and broadcast the user input
   @impl true
   def handle_info(:prompt, state) do
-    content =
-      IO.ANSI.format([:red, "> "])
-      |> IO.gets()
-      |> String.trim()
-      |> user_input()
+    IO.ANSI.format([:red, "> "])
+    |> IO.gets()
+    |> String.trim()
+    |> user_input()
 
     {:noreply, state}
   end
 
   def header do
-    IO.puts(IO.ANSI.format([:bright, "\nType '/exit' to quit\n"]))
+    [:bright, "\nType '/exit' to quit\n"]
+    |> IO.ANSI.format()
+    |> IO.puts()
   end
 
   def prompt do
@@ -54,6 +55,7 @@ defmodule Weaver.TUI do
 
   defp user_input("/exit") do
     System.stop(0)
+    Process.sleep(:infinity)
   end
 
   # If the user input wasn't a slash command broadcast it
