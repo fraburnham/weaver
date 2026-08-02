@@ -14,15 +14,12 @@ defmodule Weaver.TUI do
   end
 
   # TODO: display tool calls
-  # TODO: optional/toggleable show thinking
 
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
-  def handle_info(%{role: "assistant", content: content}, state) do
-    content
-    |> Marcli.render()
-    |> output()
-
+  def handle_info(msg = %{role: "assistant"}, state) do
+    show_thinking(msg)
+    show_content(msg)
     prompt()
 
     {:noreply, state}
@@ -45,7 +42,7 @@ defmodule Weaver.TUI do
     {:noreply, state}
   end
 
-  def header do
+  defp header do
     [:bright, "Type '/exit' to quit"]
     |> IO.ANSI.format()
     |> output()
@@ -60,6 +57,14 @@ defmodule Weaver.TUI do
     IO.puts(content)
     IO.puts("")
   end
+
+  # TODO: make showing thinking optional
+  defp show_thinking(%{thinking: thinking}),
+    do: [:faint, :cyan, thinking] |> IO.ANSI.format() |> output()
+
+  defp show_thinking(_), do: nil
+
+  defp show_content(%{content: content}), do: Marcli.render(content) |> output()
 
   defp user_input("/exit") do
     System.stop(0)
