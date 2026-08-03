@@ -1,0 +1,28 @@
+{
+    "model": "gemma4:e2b",
+    "created_at": "2026-08-02T10:36:52.665016515Z",
+    "message": {
+        "role": "assistant",
+        "content": "Understood. How can I help you?",
+        "tool_calls": [
+            {
+                "function": {
+                    "name": "get_weather",
+                    "arguments": {
+                        "city": "Tokyo"
+                    }
+                }
+            }
+        ],
+
+        "thinking": "1.  **Analyze the Request:** The user input is \"This is only a test.\"\n\n2.  **Determine Intent:** The input is extremely brief and lacks a specific request for information, action, or content generation. It seems like a placeholder or a test of the system's responsiveness.\n\n3.  **Examine Available Tools:** I have access to tools for memory management (`store-memory`, `search-memory`, `get-memory`), documentation management (`process-docs`, `search-docs`, `get-docs`), and general conversational capabilities.\n\n4.  **Evaluate Tool Relevance:** None of the provided tools are designed to handle a generic, context-less statement like \"This is only a test.\" They require specific queries or data to function meaningfully.\n\n5.  **Formulate a Response Strategy:** Since there is no actionable request, the appropriate response is to acknowledge the input neutrally or ask for clarification on what the user wants to do next.\n\n6.  **Final Response Generation:** A simple, polite acknowledgment is sufficient."
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 7465216874,
+    "load_duration": 5024693578,
+    "prompt_eval_count": 620,
+    "prompt_eval_duration": 86492095,
+    "eval_count": 231,
+    "eval_duration": 2051603259
+}

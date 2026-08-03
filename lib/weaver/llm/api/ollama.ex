@@ -31,7 +31,7 @@ end
 # TODO: what is the right way to organize this?
 defmodule Weaver.Api.OllamaMock do
   def chat(_, _) do
-    File.read!("ollama-response.json")
+    File.read!("dev/ollama-response.json")
     |> Jason.decode!(keys: :atoms)
     |> Map.take([:message, :prompt_eval_count, :eval_count])
   end
