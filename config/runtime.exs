@@ -1,5 +1,6 @@
 import Config
 
+alias Weaver.History
 alias Weaver.LLM
 alias Weaver.Personas
 alias Weaver.Tools
@@ -11,8 +12,8 @@ config :weaver,
     # api: Weaver.Api.Ollama,
     base_url: "http://workload.api.llm.skynet/"
   },
-  history: %{
-    base_dir: ".weaver/"
+  history: %History{
+    base_dir: ".weaver/history/"
   },
   tools: %Tools{
     base_dir: "~/agent/tools/"
