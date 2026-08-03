@@ -31,7 +31,12 @@ defmodule Weaver.MixProject do
       {:makeup_eex, "~> 2.0.2"},
       {:jason, "~> 1.4"},
       {:req, "~> 0.5.0"},
-      {:rambo, "~> 0.3"}
+      {:rambo, "~> 0.3"},
+      {:ex_aws, "~> 2.1"},
+      {:configparser_ex, "~> 4.0"},
+      {:ex_aws_bedrock, "~> 2.5"},
+      {:hackney, "~> 1.9"},
+      {:poison, "~> 3.0"}
     ]
   end
 end
