@@ -41,7 +41,7 @@ defmodule Weaver.TUI do
   # Display a prompt and broadcast the user input
   @impl true
   def handle_info(:prompt, state = %TUI{}) do
-    [:red, "> "]
+    [:red, "\n> "]
     |> IO.ANSI.format()
     |> IO.gets()
     |> String.trim()
@@ -51,9 +51,9 @@ defmodule Weaver.TUI do
   end
 
   defp header do
-    [:bright, "Type '/exit' to quit"]
+    [:bright, "\nType '/exit' to quit"]
     |> IO.ANSI.format()
-    |> output()
+    |> IO.puts()
   end
 
   defp prompt(msg) do
@@ -66,26 +66,20 @@ defmodule Weaver.TUI do
     send(__MODULE__, :prompt)
   end
 
-  defp output(content) do
-    IO.puts("")
-    IO.puts(content)
-    IO.puts("")
-  end
-
   defp show_thinking(true, %{thinking: thinking}),
-    do: [:faint, :cyan, thinking] |> IO.ANSI.format() |> output()
+    do: [:faint, :cyan, "\n", thinking, "\n"] |> IO.ANSI.format() |> IO.puts()
 
   defp show_thinking(_, _), do: nil
 
   defp show_content(%{content: content}) when not is_nil(content),
-    do: Marcli.render(content) |> output()
+    do: Marcli.render(content) |> IO.puts()
 
   defp show_content(_), do: nil
 
   defp show_tool_calls(%{tool_calls: tool_calls}) do
-    [:yellow, Enum.map(tool_calls, fn call -> "- " <> call[:function][:name] <> "\n" end)]
+    [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
     |> IO.ANSI.format()
-    |> output()
+    |> IO.puts()
   end
 
   defp show_tool_calls(_), do: nil
@@ -98,7 +92,7 @@ defmodule Weaver.TUI do
   defp user_input(<<"/", command::binary>>) do
     [:bright, :red, "Unknown command: ", command]
     |> IO.ANSI.format()
-    |> output()
+    |> IO.puts()
 
     prompt()
   end
