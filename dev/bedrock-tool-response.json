@@ -1,0 +1,34 @@
+{
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": null,
+        "refusal": null,
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "function": {
+                "arguments": "{\"content\":\"My name is Frank.\",\"topic\":\"User name\",\"overwrite\":true}",
+              "name": "store-memory"
+            },
+            "id": "chatcmpl-tool-b3c80fa98276b0b2",
+            "type": "function"
+          }
+        ]
+      }
+    }
+  ],
+  "created": 1785764509,
+  "id": "chatcmpl-0883285f-4efa-4546-8db3-10c1183c5c85",
+  "model": "zai.glm-5",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 40,
+    "prompt_tokens": 3057,
+    "total_tokens": 3097
+  }
+}

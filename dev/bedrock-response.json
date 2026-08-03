@@ -1,0 +1,24 @@
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "logprobs": null,
+      "message": {
+        "content": "I understand! This is just a test. I'm ready to help whenever you need assistance with:\n\n- **Shell scripting** (bash or nushell)\n- **TypeScript development**\n- **Debugging** code issues\n- **General programming tasks**\n\nFeel free to send a real request whenever you're ready, or let me know if you'd like to try a specific test scenario.",
+        "refusal": null,
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1784562895,
+  "id": "chatcmpl-7d02a48e-a295-4c6f-b9b2-809dd0298fc1",
+  "model": "zai.glm-5",
+  "object": "chat.completion",
+  "service_tier": "default",
+  "usage": {
+    "completion_tokens": 80,
+    "prompt_tokens": 2304,
+    "total_tokens": 2384
+  }
+}

@@ -8,8 +8,9 @@ alias Weaver.TUI
 
 config :weaver,
   llm: %LLM{
-    api: Weaver.Api.OllamaMock,
+    # api: Weaver.Api.OllamaMock,
     # api: Weaver.Api.Ollama,
+    api: Weaver.Api.BedrockMock,
     base_url: "http://workload.api.llm.skynet/"
   },
   history: %History{

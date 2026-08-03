@@ -7,6 +7,8 @@ defmodule Weaver.Api.Ollama do
       decode_json: [keys: :atoms]
     ).body
     |> Map.take([:message, :prompt_eval_count, :eval_count])
+
+    # TODO: Rename prompt_eval_count -> input_tokens, eval_count -> total_tokens
   end
 end
 
@@ -24,5 +26,7 @@ defmodule Weaver.Api.OllamaMock do
     )
     |> Jason.decode!(keys: :atoms)
     |> Map.take([:message, :prompt_eval_count, :eval_count])
+
+    # TODO: Rename prompt_eval_count -> input_tokens, eval_count -> total_tokens
   end
 end
