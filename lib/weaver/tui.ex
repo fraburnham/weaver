@@ -52,7 +52,7 @@ defmodule Weaver.TUI do
   end
 
   defp prompt do
-    send(self(), :prompt)
+    send(__MODULE__, :prompt)
   end
 
   defp output(content) do

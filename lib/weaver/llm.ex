@@ -1,16 +1,23 @@
 defmodule Weaver.LLM do
   use GenServer
-  alias Weaver.LLM
 
-  defstruct model: nil, api: nil, base_url: nil, context: nil
+  alias Weaver.LLM
+  alias Weaver.Tools
+
+  defstruct model: nil,
+            api: nil,
+            base_url: nil,
+            context: nil,
+            system_prompt: nil,
+            tools_available: nil
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config = %LLM{model: model, api: _, base_url: _}) do
+  def init(config = %LLM{model: _, api: _, base_url: _, system_prompt: _, tools_available: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
-    {:ok, %LLM{config | context: Weaver.LLM.Context.initial_context(%{model: model})}}
+    {:ok, %LLM{config | context: initial_context(config)}}
   end
 
   # Messages from tool calls or user prompts have to be sent to the llm
@@ -24,7 +31,7 @@ defmodule Weaver.LLM do
 
   # Messages from the llm are already added to the context
   @impl true
-  def handle_info(%{role: "assistant"}, state) do
+  def handle_info(%{role: role}, state) when role in ["assistant", "system"] do
     {:noreply, state}
   end
 
@@ -43,5 +50,24 @@ defmodule Weaver.LLM do
 
   defp context_to_api_context(context) do
     %{context | messages: Enum.reverse(context[:messages])}
+  end
+
+  defp initial_context(%LLM{
+         model: model,
+         system_prompt: system_prompt,
+         tools_available: tools_available
+       }) do
+    system_prompt = %{
+      role: "system",
+      content: system_prompt
+    }
+
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", system_prompt)
+
+    %{
+      model: model,
+      messages: [system_prompt],
+      tools: Tools.get_tool_definitions(tools_available)
+    }
   end
 end
