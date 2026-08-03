@@ -77,14 +77,15 @@ defmodule Weaver.Tools do
       |> Path.join()
       |> Path.expand()
 
-    # TODO: handle Rambo errors
-    {_, %Rambo{status: status, out: out, err: err}} =
-      Rambo.run(tool, in: Jason.encode_to_iodata!(%{tool_call: tool_call}), log: false)
-
-    if status !== 0 do
-      err
-    else
-      out
+    case Exile.stream([tool],
+           input: [Jason.encode_to_iodata!(%{tool_call: tool_call})],
+           stderr: :consume,
+           exit_timeout: :infinity
+         )
+         |> Enum.into(%{}) do
+      %{stdout: stdout} -> stdout
+      %{stderr: stderr} -> stderr
+      _ -> nil
     end
   end
 

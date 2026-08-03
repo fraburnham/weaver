@@ -22,6 +22,7 @@ defmodule Weaver.MixProject do
 
   defp deps do
     [
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:phoenix_pubsub, "~> 2.0"},
       {:marcli, "~> 0.1.0"},
       {:makeup_syntect, "~> 0.1.4"},
@@ -31,12 +32,12 @@ defmodule Weaver.MixProject do
       {:makeup_eex, "~> 2.0.2"},
       {:jason, "~> 1.4"},
       {:req, "~> 0.5.0"},
-      {:rambo, "~> 0.3"},
       {:ex_aws, "~> 2.1"},
       {:configparser_ex, "~> 4.0"},
       {:ex_aws_bedrock, "~> 2.5"},
       {:hackney, "~> 1.9"},
-      {:poison, "~> 3.0"}
+      {:poison, "~> 3.0"},
+      {:exile, "~> 0.14"}
     ]
   end
 end
