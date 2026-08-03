@@ -26,3 +26,5 @@ weaver-*.tar
 /tmp/
 
 *~
+
+.weaver/
