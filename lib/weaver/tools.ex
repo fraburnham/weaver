@@ -78,7 +78,7 @@ defmodule Weaver.Tools do
       |> Path.expand()
 
     # TODO: handle Rambo errors
-    {:ok, %Rambo{status: status, out: out, err: err}} =
+    {_, %Rambo{status: status, out: out, err: err}} =
       Rambo.run(tool, in: Jason.encode_to_iodata!(%{tool_call: tool_call}), log: false)
 
     if status !== 0 do
