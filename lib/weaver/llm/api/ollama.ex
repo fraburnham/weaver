@@ -12,8 +12,16 @@ end
 
 # TODO: what is the right way to organize this?
 defmodule Weaver.Api.OllamaMock do
-  def chat(_, _) do
-    File.read!("dev/ollama-response.json")
+  def chat(%{messages: messages}, _) do
+    # If the last message is a tool role then respond with a plain response
+    # Else respond with a tool call response
+    File.read!(
+      if List.last(messages, %{role: "assistant"})[:role] === "tool" do
+        "dev/ollama-response.json"
+      else
+        "dev/ollama-tool-response.json"
+      end
+    )
     |> Jason.decode!(keys: :atoms)
     |> Map.take([:message, :prompt_eval_count, :eval_count])
   end
