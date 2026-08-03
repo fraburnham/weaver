@@ -30,7 +30,8 @@ defmodule Weaver.MixProject do
       {:makeup_erlang, "~> 1.1.0"},
       {:makeup_eex, "~> 2.0.2"},
       {:jason, "~> 1.4"},
-      {:req, "~> 0.5.0"}
+      {:req, "~> 0.5.0"},
+      {:rambo, "~> 0.3"}
     ]
   end
 end

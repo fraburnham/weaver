@@ -24,8 +24,14 @@ defmodule Weaver.History do
 
   @impl true
   def handle_info(msg = %{role: _role}, file_descriptor) do
-    IO.write(file_descriptor, Jason.encode_to_iodata!(msg))
-    IO.write(file_descriptor, "\n")
+    update_file(file_descriptor, msg)
+
+    {:noreply, file_descriptor}
+  end
+
+  @impl true
+  def handle_info(msgs = [%{role: _} | _], file_descriptor) do
+    Enum.map(msgs, fn msg -> update_file(file_descriptor, msg) end)
 
     {:noreply, file_descriptor}
   end
@@ -33,5 +39,9 @@ defmodule Weaver.History do
   @impl true
   def terminate(_reason, file_descriptor) do
     File.close(file_descriptor)
+  end
+
+  defp update_file(file_descriptor, msg) do
+    IO.puts(file_descriptor, Jason.encode_to_iodata!(msg))
   end
 end

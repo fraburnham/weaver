@@ -23,13 +23,18 @@ defmodule Weaver.TUI do
     show_thinking(config.show_thinking, msg)
     show_content(msg)
     show_tool_calls(msg)
-    prompt()
+    prompt(msg)
 
     {:noreply, config}
   end
 
   @impl true
-  def handle_info(%{role: _role}, state = %TUI{}) do
+  def handle_info(%{role: _}, state = %TUI{}) do
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info([%{role: _} | _], state = %TUI{}) do
     {:noreply, state}
   end
 
@@ -49,6 +54,12 @@ defmodule Weaver.TUI do
     [:bright, "Type '/exit' to quit"]
     |> IO.ANSI.format()
     |> output()
+  end
+
+  defp prompt(msg) do
+    if not Map.has_key?(msg, :tool_calls) do
+      prompt()
+    end
   end
 
   defp prompt do

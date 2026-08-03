@@ -23,10 +23,19 @@ defmodule Weaver.LLM do
   # Messages from tool calls or user prompts have to be sent to the llm
   @impl true
   def handle_info(msg = %{role: role}, state = %LLM{}) when role in ["user", "tool"] do
-    state = add_message(msg, state)
+    state = add_message(state, msg)
     response = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
-    {:noreply, add_message(response, state)}
+    {:noreply, add_message(state, response)}
+  end
+
+  # Sometimes multiple tools are called in a single turn
+  @impl true
+  def handle_info(tool_responses = [%{role: role} | _], state) when role in ["tool"] do
+    state = List.foldr(tool_responses, state, fn resp, acc -> add_message(acc, resp) end)
+    response = request(state)
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
+    {:noreply, add_message(state, response)}
   end
 
   # Messages from the llm are already added to the context
@@ -44,7 +53,7 @@ defmodule Weaver.LLM do
   end
 
   # Add a message to the context
-  defp add_message(msg, state = %LLM{}) do
+  defp add_message(state = %LLM{}, msg) do
     %LLM{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
   end
 

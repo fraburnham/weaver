@@ -19,7 +19,13 @@ defmodule Weaver.Application do
       {Phoenix.PubSub, name: Weaver.PubSub},
       {History, Application.get_env(:weaver, :history)},
       {Tools, Application.get_env(:weaver, :tools)},
-      {LLM, %{Application.get_env(:weaver, :llm) | model: model, system_prompt: system_prompt, tools_available: tools_available}},
+      {LLM,
+       %{
+         Application.get_env(:weaver, :llm)
+         | model: model,
+           system_prompt: system_prompt,
+           tools_available: tools_available
+       }},
       {TUI, Application.get_env(:weaver, :tui)}
     ]
 
