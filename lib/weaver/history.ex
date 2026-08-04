@@ -31,7 +31,7 @@ defmodule Weaver.History do
 
   @impl true
   def handle_info(msgs = [%{role: _} | _], file_descriptor) do
-    Enum.map(msgs, fn msg -> update_file(file_descriptor, msg) end)
+    for msg <- msgs, do: update_file(file_descriptor, msg)
 
     {:noreply, file_descriptor}
   end
