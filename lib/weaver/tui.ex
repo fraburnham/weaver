@@ -74,10 +74,12 @@ defmodule Weaver.TUI do
 
   defp show_content(%{content: ""}), do: nil
 
-  defp show_content(%{content: content}) do
+  defp show_content(%{content: content}) when not is_nil(content) do
     Marcli.render(content)
     |> IO.puts()
   end
+
+  defp show_content(_), do: nil
 
   defp show_tool_calls(%{tool_calls: tool_calls}) do
     [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
