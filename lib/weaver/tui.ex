@@ -33,6 +33,7 @@ defmodule Weaver.TUI do
     {:noreply, state}
   end
 
+  # A list of messages is always tool call responses. Don't need to show that in the UI.
   @impl true
   def handle_info([%{role: _} | _], state = %TUI{}) do
     {:noreply, state}
@@ -71,10 +72,12 @@ defmodule Weaver.TUI do
 
   defp show_thinking(_, _), do: nil
 
-  defp show_content(%{content: content}) when not is_nil(content),
-    do: Marcli.render(content) |> IO.puts()
+  defp show_content(%{content: ""}), do: nil
 
-  defp show_content(_), do: nil
+  defp show_content(%{content: content}) do
+    Marcli.render(content)
+    |> IO.puts()
+  end
 
   defp show_tool_calls(%{tool_calls: tool_calls}) do
     [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
