@@ -73,20 +73,25 @@ defmodule Weaver.Tools do
 
   defp call_tool(base_dir, name, tool_call) do
     tool =
-      [base_dir, name, "run"]
-      |> Path.join()
-      |> Path.expand()
+      [
+        [base_dir, name, "run"]
+        |> Path.join()
+        |> Path.expand()
+      ]
 
-    case Exile.stream([tool],
-           input: [Jason.encode_to_iodata!(%{tool_call: tool_call})],
-           stderr: :consume,
-           exit_timeout: :infinity
-         )
-         |> Enum.into(%{}) do
-      %{stdout: stdout} -> stdout
-      %{stderr: stderr} -> stderr
-      _ -> nil
-    end
+    Exile.stream(tool,
+      input: [Jason.encode_to_iodata!(%{tool_call: tool_call})],
+      stderr: :redirect_to_stdout,
+      exit_timeout: :infinity
+    )
+    |> Enum.into([])
+    |> Enum.filter(fn chunk ->
+      case chunk do
+        {:exit, {:status, _}} -> false
+        _ -> true
+      end
+    end)
+    |> IO.iodata_to_binary()
   end
 
   def get_tool_definitions(tools) do
