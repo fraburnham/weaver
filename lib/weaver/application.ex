@@ -11,6 +11,12 @@ defmodule Weaver.Application do
 
   @impl true
   def start(_type, _args) do
+    case System.argv do
+      ["--workdir", workdir] ->
+        File.cd!(workdir)
+      _ -> nil
+    end
+
     system_prompt = Personas.system_prompt(Application.get_env(:weaver, :personas))
     model = Personas.model(Application.get_env(:weaver, :personas))
     tools_available = Personas.tools_available(Application.get_env(:weaver, :personas))
