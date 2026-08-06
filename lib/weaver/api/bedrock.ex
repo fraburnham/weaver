@@ -1,33 +1,30 @@
 defmodule Weaver.Api.Bedrock do
-  def handle_tool_call(tool_call = %{function: function = %{arguments: argumments}}) do
-    # TODO: Pretty sure this is where to handle the llm giving back a shitty tool call
-    %{tool_call | function: %{function | arguments: Jason.decode!(argumments)}}
+  def parse_tool_calls(updater) do
+    fn req_resp ->
+      case req_resp do
+        # Update the tool calls in a bedrock response
+        %{choices: [%{message: %{tool_calls: _}} | _]} ->
+          update_in(
+            req_resp,
+            [:choices, Access.all(), :message, :tool_calls, Access.all(), :function, :arguments],
+            fn arguments ->
+              updater.(arguments)
+            end
+          )
+
+        r ->
+          r
+      end
+    end
   end
 
-  def parse_tool_requests(
-        response = %{choices: [choice = %{message: message = %{tool_calls: tool_calls}}]}
-      ) do
-    %{
-      response
-      | choices: [
-          %{
-            choice
-            | message: %{
-                message
-                | tool_calls: Enum.map(tool_calls, &Weaver.Api.Bedrock.handle_tool_call/1)
-              }
-          }
-        ]
-    }
-  end
-
-  def parse_tool_requests(response) do
-    response
   end
 end
 
 defmodule Weaver.Api.BedrockMock do
   def chat(%{messages: messages}, _) do
+    tool_call_decoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.decode!/1)
+
     %{
       choices: [%{message: message}],
       usage: %{prompt_tokens: input_tokens, total_tokens: total_tokens}
@@ -40,7 +37,7 @@ defmodule Weaver.Api.BedrockMock do
         end
       )
       |> Jason.decode!(keys: :atoms)
-      |> Weaver.Api.Bedrock.parse_tool_requests()
+      |> tool_call_decoder.()
 
     %{
       message: message,
