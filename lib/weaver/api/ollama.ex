@@ -1,5 +1,9 @@
 defmodule Weaver.Api.Ollama do
-  def chat(context, %{base_url: base_url}) do
+  defstruct base_url: nil
+
+  def chat(context) do
+    %{base_url: base_url} = Application.get_env(:weaver, :ollama)
+
     # TODO: use response streaming
     Req.post!(%URI{URI.parse(base_url) | path: "/api/chat"},
       json: Map.put(context, :stream, false),
@@ -14,7 +18,7 @@ end
 
 # TODO: what is the right way to organize this?
 defmodule Weaver.Api.OllamaMock do
-  def chat(%{messages: messages}, _) do
+  def chat(%{messages: messages}) do
     # If the last message is a tool role then respond with a plain response
     # Else respond with a tool call response
     File.read!(

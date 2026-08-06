@@ -6,7 +6,6 @@ defmodule Weaver.LLM do
 
   defstruct model: nil,
             api: nil,
-            base_url: nil,
             context: nil,
             system_prompt: nil,
             tools_available: nil
@@ -14,7 +13,7 @@ defmodule Weaver.LLM do
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config = %LLM{model: _, api: _, base_url: _, system_prompt: _, tools_available: _}) do
+  def init(config = %LLM{model: _, api: _, system_prompt: _, tools_available: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
     {:ok, %LLM{config | context: initial_context(config)}}
@@ -45,10 +44,10 @@ defmodule Weaver.LLM do
   end
 
   # Send a request to the api (using an api module)
-  defp request(%LLM{context: context, base_url: base_url, api: api}) do
+  defp request(%LLM{context: context, api: api}) do
     context
     |> context_to_api_context()
-    |> api.chat(%{base_url: base_url})
+    |> api.chat()
     |> Map.get(:message)
   end
 

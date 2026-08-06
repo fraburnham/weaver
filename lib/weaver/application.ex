@@ -16,6 +16,8 @@ defmodule Weaver.Application do
     tools_available = Personas.tools_available(Application.get_env(:weaver, :personas))
 
     children = [
+      # TODO: this should be conditionally started! (and should probably be a child of LLM)
+      {Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock)},
       {Phoenix.PubSub, name: Weaver.PubSub},
       {History, Application.get_env(:weaver, :history)},
       {Tools, Application.get_env(:weaver, :tools)},
