@@ -7,7 +7,18 @@ defmodule Weaver.Api.Bedrock do
   def parse_tool_requests(
         response = %{choices: [choice = %{message: message = %{tool_calls: tool_calls}}]}
       ) do
-    %{response | choices: [%{choice | message: %{message | tool_calls: tool_calls}}]}
+    %{
+      response
+      | choices: [
+          %{
+            choice
+            | message: %{
+                message
+                | tool_calls: Enum.map(tool_calls, &Weaver.Api.Bedrock.handle_tool_call/1)
+              }
+          }
+        ]
+    }
   end
 
   def parse_tool_requests(response) do
