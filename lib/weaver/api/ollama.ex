@@ -1,5 +1,9 @@
 defmodule Weaver.Api.Ollama do
+  @behaviour Weaver.Api
+
   defstruct base_url: nil
+
+  def start_link(), do: nil
 
   def chat(context) do
     %{base_url: base_url} = Application.get_env(:weaver, :ollama)
@@ -16,8 +20,11 @@ defmodule Weaver.Api.Ollama do
   end
 end
 
-# TODO: what is the right way to organize this?
 defmodule Weaver.Api.OllamaMock do
+  @behaviour Weaver.Api
+
+  def start_link(), do: nil
+
   def chat(%{messages: messages}) do
     # If the last message is a tool role then respond with a plain response
     # Else respond with a tool call response

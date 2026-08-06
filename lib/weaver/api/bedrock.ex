@@ -92,6 +92,15 @@ defmodule Atomize do
 end
 
 defmodule Weaver.Api.Bedrock do
+  @behaviour Weaver.Api
+
+  def start_link(),
+    do:
+      DynamicSupervisor.start_child(
+        Weaver.DynamicSupervisor,
+        {Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock)}
+      )
+
   def parse_tool_calls(updater) do
     fn req_resp ->
       case req_resp do
@@ -164,6 +173,10 @@ defmodule Weaver.Api.Bedrock do
 end
 
 defmodule Weaver.Api.BedrockMock do
+  @behaviour Weaver.Api
+
+  def start_link(), do: nil
+
   def chat(req = %{messages: messages}) do
     tool_call_encoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.encode!/1)
     tool_call_decoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.decode!/1)

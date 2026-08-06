@@ -13,8 +13,9 @@ defmodule Weaver.LLM do
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config = %LLM{model: _, api: _, system_prompt: _, tools_available: _}) do
+  def init(config = %LLM{model: _, api: api, system_prompt: _, tools_available: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
+    api.start_link()
 
     {:ok, %LLM{config | context: initial_context(config)}}
   end

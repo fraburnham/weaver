@@ -11,10 +11,12 @@ defmodule Weaver.Application do
 
   @impl true
   def start(_type, _args) do
-    case System.argv do
+    case System.argv() do
       ["--workdir", workdir] ->
         File.cd!(workdir)
-      _ -> nil
+
+      _ ->
+        nil
     end
 
     system_prompt = Personas.system_prompt(Application.get_env(:weaver, :personas))
@@ -22,8 +24,7 @@ defmodule Weaver.Application do
     tools_available = Personas.tools_available(Application.get_env(:weaver, :personas))
 
     children = [
-      # TODO: this should be conditionally started! (and should probably be a child of LLM)
-      {Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock)},
+      {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
       {Phoenix.PubSub, name: Weaver.PubSub},
       {History, Application.get_env(:weaver, :history)},
       {Tools, Application.get_env(:weaver, :tools)},
