@@ -15,7 +15,7 @@ defmodule Weaver.History do
       |> Path.expand()
 
     File.mkdir_p!(base_dir |> Path.expand())
-    {:ok, file_descriptor} = File.open(history_file_path, [:append])
+    {:ok, file_descriptor} = File.open(history_file_path, [:append, :utf8])
 
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
