@@ -24,7 +24,7 @@ defmodule Weaver.MixProject do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:phoenix_pubsub, "~> 2.0"},
-      {:marcli, "~> 0.1.0"},
+      {:marcli, "~> 0.3.1"},
       {:makeup_syntect, "~> 0.1.4"},
       {:rustler_precompiled, "~> 0.8.2"},
       {:makeup_elixir, "~> 1.0.1"},
