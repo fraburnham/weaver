@@ -92,12 +92,6 @@ defmodule Atomize do
 end
 
 defmodule Weaver.Api.Bedrock do
-  def safe_access do
-    Access.filter(fn el ->
-      not is_nil(el)
-    end)
-  end
-
   def parse_tool_calls(updater) do
     fn req_resp ->
       case req_resp do
@@ -129,7 +123,7 @@ defmodule Weaver.Api.Bedrock do
                 is_map_key(el, :tool_calls)
               end),
               :tool_calls,
-              safe_access(),
+              Access.all(),
               :function,
               :arguments
             ],
@@ -149,7 +143,6 @@ defmodule Weaver.Api.Bedrock do
     tool_call_decoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.decode!/1)
     tool_call_encoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.encode!/1)
 
-    # TODO: encode/decode of tools
     %{
       choices: [%{message: message}],
       usage: %{prompt_tokens: input_tokens, total_tokens: total_tokens}
