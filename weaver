@@ -6,4 +6,4 @@ WORKDIR="$PWD"
 WEAVER_DIR="$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)"
 
 cd "$WEAVER_DIR"
-exec mix run --no-halt -- --workdir "$WORKDIR"
+MIX_ENV=prod exec mix run --no-halt -- --workdir "$WORKDIR"
