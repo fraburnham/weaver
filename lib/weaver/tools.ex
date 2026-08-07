@@ -1,3 +1,8 @@
+defmodule Weaver.Tools.Tool do
+  @callback run(tool_call :: map) :: binary
+  @callback definition() :: map
+end
+
 defmodule Weaver.Tools do
   use GenServer
 
@@ -17,14 +22,18 @@ defmodule Weaver.Tools do
   end
 
   @impl true
-  def handle_call({:get_tool_definitions, tools}, _from, config = %Tools{base_dir: base_dir}) do
+  def handle_call(
+        {:get_tool_definitions, tools},
+        _from,
+        config = %Tools{base_dir: base_dir, tool_modules: tool_modules}
+      ) do
     tool_definitions =
       Enum.map(tools, fn tool ->
-        [base_dir, tool, "definition.json"]
-        |> Path.join()
-        |> Path.expand()
-        |> File.read!()
-        |> Jason.decode!(keys: :atoms)
+        if Map.has_key?(tool_modules, tool) do
+          tool_modules[tool].definition()
+        else
+          get_stdio_tool_definition(base_dir, tool)
+        end
       end)
 
     {:reply, tool_definitions, %Tools{config | tool_definitions: tool_definitions}}
@@ -34,7 +43,7 @@ defmodule Weaver.Tools do
   @impl true
   def handle_info(
         %{role: role, tool_calls: tool_calls},
-        config = %Tools{base_dir: base_dir, tool_definitions: tool_definitions}
+        config = %Tools{tool_definitions: tool_definitions}
       )
       when role in ["assistant"] do
     tool_responses =
@@ -44,13 +53,12 @@ defmodule Weaver.Tools do
         # TODO: Schema check the function call
         %{
           id: call_id,
-          tool_call_id: call_id,
           role: "tool",
           content:
             if Enum.any?(tool_definitions, fn definition ->
                  definition[:function][:name] === name
                end) do
-              call_tool(base_dir, name, tool_call)
+              call_tool(config, name, tool_call)
             else
               "Invalid tool call. No tool named `#{name}`."
             end
@@ -72,7 +80,15 @@ defmodule Weaver.Tools do
     {:noreply, config}
   end
 
-  defp call_tool(base_dir, name, tool_call) do
+  defp get_stdio_tool_definition(base_dir, tool) do
+    [base_dir, tool, "definition.json"]
+    |> Path.join()
+    |> Path.expand()
+    |> File.read!()
+    |> Jason.decode!(keys: :atoms)
+  end
+
+  defp call_stdio_tool(base_dir, name, tool_call) do
     tool =
       [
         [base_dir, name, "run"]
@@ -93,6 +109,14 @@ defmodule Weaver.Tools do
       end
     end)
     |> IO.iodata_to_binary()
+  end
+
+  defp call_tool(%Tools{base_dir: base_dir, tool_modules: tool_modules}, name, tool_call) do
+    if Map.has_key?(tool_modules, name) do
+      tool_modules[name].run(tool_call)
+    else
+      call_stdio_tool(base_dir, name, tool_call)
+    end
   end
 
   def get_tool_definitions(tools) do

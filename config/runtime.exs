@@ -9,12 +9,6 @@ alias Weaver.Api.Bedrock.Request
 alias Weaver.Api.Ollama
 
 config :weaver,
-  llm: [
-    # api: Weaver.Api.Bedrock
-    # api: Weaver.Api.OllamaMock
-    api: Weaver.Api.Ollama
-    # api: Weaver.Api.BedrockMock
-  ],
   history: [
     base_dir: System.get_env("WEAVER_HISTORY_BASE_DIR", ".weaver/history/")
   ],

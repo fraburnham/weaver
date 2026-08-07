@@ -1,6 +1,6 @@
 defmodule Weaver.Api.Bedrock.Request do
-  # TODO: should this be its own application? Should it be owned by the llm genserver?
   use GenServer
+
   alias Weaver.Api.Bedrock.Request
 
   defstruct credential_process: nil,
@@ -79,6 +79,7 @@ defmodule Weaver.Api.Bedrock.Request do
   end
 end
 
+# TODO: move this somewhere else
 defmodule Atomize do
   def map_keys(map) when is_map(map) do
     for {k, v} <- map, into: %{} do
@@ -94,6 +95,7 @@ end
 defmodule Weaver.Api.Bedrock do
   @behaviour Weaver.Api
 
+  # TODO: is this an approprate use of the `start_link` name?
   def start_link(),
     do:
       DynamicSupervisor.start_child(
@@ -148,7 +150,6 @@ defmodule Weaver.Api.Bedrock do
     end
   end
 
-  # TODO: should have an api behavior?
   def chat(data = %{model: model}) do
     tool_call_decoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.decode!/1)
     tool_call_encoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.encode!/1)

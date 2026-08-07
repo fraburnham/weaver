@@ -32,7 +32,7 @@ defmodule Weaver.Api.OllamaMock do
       if List.last(messages, %{role: "assistant"})[:role] === "tool" do
         "dev/ollama-response.json"
       else
-        "dev/ollama-tool-response.json"
+        "dev/ollama-tool-mock-response.json"
       end
     )
     |> Jason.decode!(keys: :atoms)

@@ -1,0 +1,26 @@
+{
+    "model": "mock model",
+    "message": {
+        "role": "assistant",
+        "content": "mock content",
+        "tool_calls": [{
+            "function": {
+                "index":0,
+                "name":"mock",
+                "arguments": {
+                    "input":"This is only a test."
+                }
+            },
+            "id":"call_hvopf47w"
+        }],
+        "thinking": "mock thoughts"
+    },
+    "done": true,
+    "done_reason": "stop",
+    "total_duration": 7465216874,
+    "load_duration": 5024693578,
+    "prompt_eval_count": 620,
+    "prompt_eval_duration": 86492095,
+    "eval_count": 231,
+    "eval_duration": 2051603259
+}
