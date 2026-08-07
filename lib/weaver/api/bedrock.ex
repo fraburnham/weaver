@@ -98,7 +98,8 @@ defmodule Weaver.Api.Bedrock do
     do:
       DynamicSupervisor.start_child(
         Weaver.DynamicSupervisor,
-        {Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock)}
+        {Weaver.Api.Bedrock.Request,
+         struct!(Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock))}
       )
 
   def parse_tool_calls(updater) do

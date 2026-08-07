@@ -4,7 +4,8 @@ defmodule Weaver.Tools do
   alias Weaver.Tools
 
   defstruct base_dir: nil,
-            tool_definitions: nil
+            tool_definitions: nil,
+            tool_modules: %{}
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 

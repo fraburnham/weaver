@@ -19,23 +19,24 @@ defmodule Weaver.Application do
         nil
     end
 
-    system_prompt = Personas.system_prompt(Application.get_env(:weaver, :personas))
-    model = Personas.model(Application.get_env(:weaver, :personas))
-    tools_available = Personas.tools_available(Application.get_env(:weaver, :personas))
+    personas = struct!(Personas, Application.get_env(:weaver, :personas))
+    system_prompt = Personas.system_prompt(personas)
+    model = Personas.model(personas)
+    tools_available = Personas.tools_available(personas)
 
     children = [
       {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
       {Phoenix.PubSub, name: Weaver.PubSub},
-      {History, Application.get_env(:weaver, :history)},
-      {Tools, Application.get_env(:weaver, :tools)},
+      {History, struct!(History, Application.get_env(:weaver, :history))},
+      {Tools, struct!(Tools, Application.get_env(:weaver, :tools))},
       {LLM,
-       %{
-         Application.get_env(:weaver, :llm)
-         | model: model,
-           system_prompt: system_prompt,
-           tools_available: tools_available
-       }},
-      {TUI, Application.get_env(:weaver, :tui)}
+       struct!(LLM, [
+         {:model, model},
+         {:system_prompt, system_prompt},
+         {:tools_available, tools_available}
+         | Application.get_env(:weaver, :llm)
+       ])},
+      {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
     ]
 
     opts = [strategy: :one_for_one, name: Weaver.Supervisor]

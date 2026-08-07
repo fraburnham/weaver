@@ -6,7 +6,7 @@ defmodule Weaver.Api.Ollama do
   def start_link(), do: nil
 
   def chat(context) do
-    %{base_url: base_url} = Application.get_env(:weaver, :ollama)
+    %{base_url: base_url} = struct!(Weaver.Api.Ollama, Application.get_env(:weaver, :ollama))
 
     # TODO: use response streaming
     Req.post!(%URI{URI.parse(base_url) | path: "/api/chat"},
