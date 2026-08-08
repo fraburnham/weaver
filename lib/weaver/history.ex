@@ -1,3 +1,33 @@
+@moduledoc """
+@doc ~S"""
+`Weaver.History` is a GenServer that persists conversation messages to JSONL files.
+
+It subscribes to the `"messages"` Phoenix.PubSub topic and captures all messages,
+encoding each as JSON and appending to a timestamped file. This provides an
+out-of-the-box way to persist conversation history for later review or analysis.
+
+Each new conversation automatically creates a new file with an ISO 8601 timestamp.
+When the server terminates (on shutdown or error), the file descriptor is properly closed.
+
+### Message Format
+
+Messages are stored in JSONL (JSON Lines) format, with one JSON object per line.
+
+Each message has:
+  - `role`: `"user"`, `"assistant"`, `"tool"`, or `"system"`
+  - `content`: the message content as a string
+  - `tool_calls`: an optional list of tool calls made in this message
+
+### Config
+
+```elixir
+{History, struct!(History, Application.get_env(:weaver, :history))}
+```
+
+Where `:history` is a map with:
+  - `:base_dir` - The directory where history files are stored (default: `~/.weaver`)
+"""
+
 defmodule Weaver.History do
   use GenServer
 
