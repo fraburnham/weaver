@@ -70,6 +70,46 @@ config :weaver,
 - `:base_dir` - The directory containing STDIO tools
 - `:tool_modules` - A map of tool names to elixir modules
 
+### Personas
+
+A persona is built from a `persona.json` and a `PERSONA.md` in a directory named for the persona.
+
+#### `persona.json`
+
+```json
+{
+    "model": "model-name-or-id",
+    "tools": [
+        "list",
+        "of",
+        "tools",
+        "model",
+        "can",
+        "use"
+    ]
+}
+```
+
+- `"model"` - The name or id of the model in a format that the api client can use
+- `"tools"` - A list of tool names this persona is allowed to call
+
+#### `PERSONA.md`
+
+The `PERSONA.md` file is used as the system prompt. It can be empty.
+
+#### Config
+
+```elixir
+config :weaver,
+  personas: [
+    base_dir: "/path/to/persona/dirs",
+    name: "name-of-the-persona-to-use"
+  ]
+```
+
+- `:base_dir` - The base directory to search for personas
+- `:name` - The name of the persona must match its dirname in the personas base dir
+
 ### LLM
 
 `LLM` ties together the API and message queue by:
