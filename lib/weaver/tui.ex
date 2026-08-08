@@ -7,43 +7,6 @@ defmodule Weaver.TUI do
   responses are displayed using Marcli for markdown formatting, and tool calls
   are listed in yellow. The module handles user prompts and recognizes slash
   commands for quitting or other special operations.
-
-  #### Config
-
-  ```elixir
-  config :weaver,
-    tui: [show_thinking: true]
-  ```
-
-  - `:show_thinking` - Whether to show thinking content (default: `false`)
-
-  #### Message Format
-
-  The module expects messages in the following format:
-
-  ```elixir
-  %{
-    role: "user" | "assistant" | "tool" | "system",
-    content: String.t(),
-    tool_calls: [
-      %{
-        id: String.t(),
-        type: "function",
-        function: %{name: String.t(), arguments: map()}
-      } | []
-    ]
-  }
-  ```
-
-  #### Usage
-
-  When the framework is started with TUI enabled, `Weaver.TUI` will:
-  - Display a header with instructions (e.g., `/exit` to quit)
-  - Show thinking traces when enabled
-  - Render assistant responses with markdown formatting
-  - Display tool calls for debugging
-  - Prompt for user input after each response
-  - Broadcast user input back to the message queue
   """
 
   use GenServer
