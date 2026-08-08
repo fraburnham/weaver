@@ -1,9 +1,16 @@
 defmodule Weaver.Tools.Tool do
+  @moduledoc """
+  A behaviour for implementing elixir module based tools
+  """
   @callback run(tool_call :: map) :: binary
   @callback definition() :: map
 end
 
 defmodule Weaver.Tools do
+  @moduledoc """
+  `Weaver.Tools` is responsible for calling tools and formatting their response appropriately. It broadcasts
+  a list of messages, never a bare message map.
+  """
   use GenServer
 
   alias Weaver.Tools

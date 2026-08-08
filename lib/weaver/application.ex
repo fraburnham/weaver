@@ -1,5 +1,7 @@
 defmodule Weaver.Application do
-  @moduledoc false
+  @moduledoc """
+  The entrypoint for the cli application
+  """
 
   use Application
 

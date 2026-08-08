@@ -1,4 +1,8 @@
 defmodule Weaver.Api.Bedrock.Request do
+  @moduledoc """
+  `Weaver.Api.Bedrock.Request` handles converting sso credentials to something for ExAws and
+  wraps ExAws.Bedrock.request to inject those creds when calling Bedrock.
+  """
   use GenServer
 
   alias Weaver.Api.Bedrock.Request
@@ -81,6 +85,10 @@ end
 
 # TODO: move this somewhere else
 defmodule Atomize do
+  @moduledoc """
+  Convert stuff to atoms
+  """
+
   def map_keys(map) when is_map(map) do
     for {k, v} <- map, into: %{} do
       {String.to_atom(k), handle_value(v)}
@@ -93,6 +101,10 @@ defmodule Atomize do
 end
 
 defmodule Weaver.Api.Bedrock do
+  @moduledoc """
+  Client for AWS Bedrock api
+  """
+
   @behaviour Weaver.Api
 
   # TODO: is this an approprate use of the `start_link` name?
@@ -175,6 +187,10 @@ defmodule Weaver.Api.Bedrock do
 end
 
 defmodule Weaver.Api.BedrockMock do
+  @moduledoc """
+  Mock AWS Bedrock api
+  """
+
   @behaviour Weaver.Api
 
   def start_link(), do: nil

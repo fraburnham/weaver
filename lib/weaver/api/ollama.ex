@@ -1,4 +1,8 @@
 defmodule Weaver.Api.Ollama do
+  @moduledoc """
+  Ollama api client
+  """
+
   @behaviour Weaver.Api
 
   defstruct base_url: nil
@@ -21,6 +25,10 @@ defmodule Weaver.Api.Ollama do
 end
 
 defmodule Weaver.Api.OllamaMock do
+  @moduledoc """
+  Mock Ollama api client
+  """
+
   @behaviour Weaver.Api
 
   def start_link(), do: nil
