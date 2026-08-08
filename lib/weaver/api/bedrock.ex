@@ -116,55 +116,57 @@ defmodule Weaver.Api.Bedrock do
          struct!(Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock))}
       )
 
-  def parse_tool_calls(updater) do
+  def tool_call_parser(updater) do
     fn req_resp ->
-      case req_resp do
-        # Update the tool calls in a bedrock response
-        %{choices: [%{message: %{tool_calls: [%{function: %{arguments: _}} | _]}} | _]} ->
-          update_in(
-            req_resp,
-            [
-              :choices,
-              Access.all(),
-              :message,
-              :tool_calls,
-              Access.all(),
-              :function,
-              :arguments
-            ],
-            fn arguments ->
-              updater.(arguments)
-            end
-          )
-
-        # Update the tool calls in a bedrock request
-        %{messages: [%{role: _} | _]} ->
-          update_in(
-            req_resp,
-            [
-              :messages,
-              Access.filter(fn el ->
-                is_map_key(el, :tool_calls)
-              end),
-              :tool_calls,
-              Access.all(),
-              :function,
-              :arguments
-            ],
-            fn arguments ->
-              updater.(arguments)
-            end
-          )
-
-        r ->
-          r
-      end
+      parse_tool_calls(req_resp, updater)
     end
   end
 
+  def parse_tool_calls(
+        resp = %{choices: [%{message: %{tool_calls: [%{function: %{arguments: _}} | _]}} | _]},
+        updater
+      ) do
+    update_in(
+      resp,
+      [
+        :choices,
+        Access.all(),
+        :message,
+        :tool_calls,
+        Access.all(),
+        :function,
+        :arguments
+      ],
+      fn arguments ->
+        updater.(arguments)
+      end
+    )
+  end
+
+  def parse_tool_calls(req = %{messages: [%{role: _} | _]}, updater) do
+    update_in(
+      req,
+      [
+        :messages,
+        Access.filter(fn el ->
+          is_map_key(el, :tool_calls)
+        end),
+        :tool_calls,
+        Access.all(),
+        :function,
+        :arguments
+      ],
+      fn arguments ->
+        updater.(arguments)
+      end
+    )
+  end
+
+  def parse_tool_calls(any, _), do: any
+
   def chat(data = %{model: model}) do
-    tool_call_decoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.decode!/1)
-    tool_call_encoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.encode!/1)
+    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!/1)
+    tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
 
     %{
       choices: [%{message: message}],
@@ -196,8 +198,8 @@ defmodule Weaver.Api.BedrockMock do
   def start_link(), do: nil
 
   def chat(req = %{messages: messages}) do
-    tool_call_encoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.encode!/1)
-    tool_call_decoder = Weaver.Api.Bedrock.parse_tool_calls(&Jason.decode!/1)
+    tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
+    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!/1)
 
     tool_call_encoder.(req)
 

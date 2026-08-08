@@ -34,4 +34,4 @@ end
 
 config :weaver,
   tools: [tool_modules: %{"mock" => Weaver.Mock}],
-  llm: [api: Weaver.Api.OllamaMock]
+  llm: [api: Weaver.Api.BedrockMock]
