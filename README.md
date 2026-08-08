@@ -6,15 +6,10 @@ Agent tui and framework
 
 ### Phoenix.PubSub
 
-Phoenix.PubSub is the messaging bus that connects all components. It broadcasts and subscribes to the `"messages"` topic, allowing:
-- User input from TUI to flow to the LLM
-- Tool responses from Tools to flow to the LLM
-- LLM responses to flow to all subscribers (TUI, History)
-- System prompts to initialize the conversation context
+Phoenix.PubSub is the messaging bus that connects all components. The goal is to allow the individual components to respond to each message as is appropriate.
 
 #### `"messages"`
 
-Messages have this shape:
 ```elixir
 %{
   role: "user" | "assistant" | "tool" | "system",
@@ -23,7 +18,7 @@ Messages have this shape:
     %{
       id: String.t(),
       type: "function",
-      function: %{name: String.t(), arguments: String.t()}
+      function: %{name: String.t(), arguments: map()}
     } | []
   ]
 }
@@ -31,108 +26,81 @@ Messages have this shape:
 
 ### DynamicSupervisor
 
-`DynamicSupervisor` manages additional supervised processes when the framework is used as a TUI. It handles APIs and other services that need to be supervised dynamically.
+`DynamicSupervisor` manages additional supervised processes when the framework is used as a TUI. It allows APIs and tools to add processes to the supervision tree.
 
 ### History
 
-`History` is a GenServer that writes conversation messages to JSONL (JSON Lines) files for persistence. It subscribes to the `"messages"` PubSub topic and captures all messages. Each message is encoded as JSON and appended to a timestamped file.
-
-When the `History` server terminates, it closes the file descriptor. New conversations automatically create new files with ISO 8601 timestamps.
+`History` writes conversation messages to JSONL (JSON Lines) files for persistence.
 
 #### Config
 
-The `History` module expects the following configuration in `mix.exs`:
-
 ```elixir
-{History, struct!(History, Application.get_env(:weaver, :history))}
+config :weaver,
+  history: [base_dir: "/path/to/history/files"]
 ```
 
-The `:history` config is a map with:
-- `:base_dir` - The directory where history files are stored (default: `~/.weaver`)
-
-Example:
-```elixir
-config :weaver, history: %{base_dir: Path.expand("~/.weaver")}
-```
-
-Example file path:
-```
-~/.weaver/2024-07-28T17-40-00Z.jsonl
-```
+- `:base_dir` - The directory where history files are stored (default: `.weaver/history/`)
 
 ### Tools
 
-`Tools` manages tool execution and responses. It subscribes to `"messages"` and when an assistant message with tool calls arrives, it executes the tools and broadcasts the responses.
+`Tools` manages tool execution and responses and can call tools via a STDIO interface or behaviour.
 
 #### STDIO Interface
 
-Tools can be external programs. The interface expects:
+A STDIO tool requires:
 - A `definition.json` file in the tool's directory
 - A `run` executable/script that accepts JSON input via STDIN
-- Output is captured from STDIO
+- Output to STDIO is sent to the llm verbatim
+- The tool's path will be built like `<weaver.tools.base_dir>/<tool name>/`
 
 #### Behaviour
 
-Tools implement this behavior:
-```elixir
-defmodule MyApp.Tool do
-  @callback run(tool_call :: map) :: binary
-  @callback definition() :: map
-end
-```
+An elixir tool must implement the `Weaver.Tool` behaviour.
 
 #### Config
 
-The `Tools` module expects:
 ```elixir
-{Tools, struct!(Tools, Application.get_env(:weaver, :tools))}
+config :weaver,
+  tools: [
+    base_dir: "/path/to/tools",
+    tool_modules: %{"tool-name" => Elixir.Module}
+  ]
 ```
 
-The `:tools` config is a map with:
-- `:base_dir` - The directory containing tool executables
-- `:tool_modules` - A map of module names to tool structs
+- `:base_dir` - The directory containing STDIO tools
+- `:tool_modules` - A map of tool names to elixir modules
 
 ### LLM
 
-`LLM` is a GenServer that orchestrates the conversation loop. It ties together the API and message queue by:
-1. Maintaining conversation context with system prompt and message history
-2. Processing user messages and tool responses
-3. Calling the API for each turn
-4. Broadcasting responses to all subscribers
-
-It broadcasts the system prompt on init and handles both user/tool messages and tool response lists.
+`LLM` ties together the API and message queue by:
+- Maintaining conversation context with system prompt and message history
+- Calling the API for each llm turn
+- Broadcasting responses to all subscribers
 
 #### Config
 
-The `LLM` module expects:
 ```elixir
-{LLM, struct!(LLM, [
-  {:model, model},
-  {:system_prompt, system_prompt},
-  {:tools_available, tools_available}
-| Application.get_env(:weaver, :llm)
-])}
+config :weaver,
+  llm: [api: Elixir.Module.That.Implements.Weaver.Api]
 ```
+
+- `:llm` - An elixir module that implements the `Weaver.Api` behaviour
 
 ### TUI
 
-The `TUI` listens for messages from the PubSub bus and displays them with different formatting:
+`TUI` handles displaying messages to the user:
 - Shows thinking content in cyan
-- Displays content using Marcli for markdown formatting
+- Displays chat responses using Marcli for markdown formatting
 - Lists tool calls in yellow
-- Handles prompts for user input
-- Recognizes `/exit` command to quit
+- Handles prompt for user input
+- Recognizes slash commands
 
 #### Config
 
 The `TUI` module expects:
 ```elixir
-{TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
+config :weaver,
+  tui: [show_thinking: true]
 ```
 
-The `:tui` config is a map with:
-- `:show_thinking` - Whether to show thinking content
-
-## Tui vs Framework
-
-As a **TUI**, you interact directly with the interface. As a **framework**, you build applications that use the underlying infrastructure. Think about which use case you need for extensibility.
+- `:show_thinking` - Whether to show thinking content (does not enable or disable thinking)
