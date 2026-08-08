@@ -39,7 +39,9 @@ config :weaver,
   history: [base_dir: "/path/to/history/files"]
 ```
 
-- `:base_dir` - The directory where history files are stored (default: `.weaver/history/`)
+| Key | Description |
+|-----|-------------|
+| `:base_dir` | The directory where history files are stored (default: `.weaver/history/`) |
 
 ### Tools
 
@@ -67,8 +69,10 @@ config :weaver,
   ]
 ```
 
-- `:base_dir` - The directory containing STDIO tools
-- `:tool_modules` - A map of tool names to elixir modules
+| Key | Description |
+|-----|-------------|
+| `:base_dir` | The directory containing STDIO tools |
+| `:tool_modules` | A map of tool names to elixir modules |
 
 ### Personas
 
@@ -90,8 +94,10 @@ A persona is built from a `persona.json` and a `PERSONA.md` in a directory named
 }
 ```
 
-- `"model"` - The name or id of the model in a format that the api client can use
-- `"tools"` - A list of tool names this persona is allowed to call
+| Key | Description |
+|-----|-------------|
+| `"model"` | The name or id of the model in a format that the api client can use |
+| `"tools"` | A list of tool names this persona is allowed to call |
 
 #### `PERSONA.md`
 
@@ -107,8 +113,10 @@ config :weaver,
   ]
 ```
 
-- `:base_dir` - The base directory to search for personas
-- `:name` - The name of the persona must match its dirname in the personas base dir
+| Key | Description |
+|-----|-------------|
+| `:base_dir` | The base directory to search for personas |
+| `:name` | The name of the persona must match its dirname in the personas base dir |
 
 ### LLM
 
@@ -124,7 +132,9 @@ config :weaver,
   llm: [api: Elixir.Module.That.Implements.Weaver.Api]
 ```
 
-- `:llm` - An elixir module that implements the `Weaver.Api` behaviour
+| Key | Description |
+|-----|-------------|
+| `:llm` | An elixir module that implements the `Weaver.Api` behaviour |
 
 ### TUI
 
@@ -143,4 +153,6 @@ config :weaver,
   tui: [show_thinking: true]
 ```
 
-- `:show_thinking` - Whether to show thinking content (does not enable or disable thinking)
+| Key | Description |
+|-----|-------------|
+| `:show_thinking` | Whether to show thinking content (does not enable or disable thinking) |
