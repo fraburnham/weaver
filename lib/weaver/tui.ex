@@ -104,6 +104,15 @@ defmodule Weaver.TUI do
     Process.sleep(:infinity)
   end
 
+  defp user_input("/clear") do
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+    prompt()
+  end
+
+  # TODO: /resume
+  # TODO: /clear-to-last-prompt
+  # TODO: /help
+
   defp user_input(<<"/", command::binary>>) do
     [:bright, :red, "Unknown command: ", command]
     |> IO.ANSI.format()

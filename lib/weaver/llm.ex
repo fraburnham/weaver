@@ -19,9 +19,15 @@ defmodule Weaver.LLM do
   @impl true
   def init(config = %LLM{model: _, api: api, system_prompt: _, tools_available: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
+    Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
     api.start_link()
 
     {:ok, %LLM{config | context: initial_context(config)}}
+  end
+
+  @impl true
+  def handle_info(:clear, state = %LLM{}) do
+    {:noreply, %LLM{state | context: initial_context(state)}}
   end
 
   # Messages from tool calls or user prompts have to be sent to the llm

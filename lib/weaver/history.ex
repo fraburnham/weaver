@@ -27,8 +27,16 @@ defmodule Weaver.History do
     {:ok, file_descriptor} = File.open(history_file_path, [:append, :utf8])
 
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
+    Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
 
     {:ok, file_descriptor}
+  end
+
+  @impl true
+  def handle_info(:clear, file_descriptor) do
+    update_file(file_descriptor, %{command: "clear"})
+
+    {:noreply, file_descriptor}
   end
 
   @impl true

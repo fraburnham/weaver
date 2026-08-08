@@ -24,6 +24,12 @@ Phoenix.PubSub is the messaging bus that connects all components. The goal is to
 }
 ```
 
+#### `"commands"`
+
+| Event | Description |
+|-------|-------------|
+|`:clear` | Empty and re-initalize context |
+
 ### DynamicSupervisor
 
 `DynamicSupervisor` manages additional supervised processes when the framework is used as a TUI. It allows APIs and tools to add processes to the supervision tree.
