@@ -1,6 +1,27 @@
 defmodule Weaver.LLM do
-  use GenServer
+  @moduledoc """
+  `Weaver.LLM` ties together the API and message queue by maintaining conversation context with system prompt and message history, calling the API for each LLM turn, and broadcasting responses to all subscribers.
 
+  It subscribes to the `"messages"` Phoenix.PubSub topic and maintains a conversation context that includes system prompts and message history. Each LLM response is broadcast to all subscribers on the `"messages"` topic.
+
+  #### Usage
+
+  Start the LLM with a config map containing the required options:
+
+  ```elixir
+  config :weaver,
+    llm: [
+      model: Model,
+      api: ApiModule
+    ]
+  ```
+
+  Where:
+  - `:model` - The LLM model to use
+  - `:api` - An elixir module that implements the `Weaver.Api` behaviour
+  """
+
+  use GenServer
   alias Weaver.LLM
   alias Weaver.Tools
 
