@@ -1,0 +1,6 @@
+{
+    "model": "qwen3.5:9b-bf16",
+    "tools": [
+        "searxng-web-search"
+    ]
+}

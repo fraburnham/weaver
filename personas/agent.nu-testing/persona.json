@@ -1,0 +1,12 @@
+{
+    "model": "gemma4:e2b",
+    "tools": [
+        "store-memory",
+        "search-memory",
+        "get-memory",
+        "process-docs",
+        "search-docs",
+        "get-docs",
+        "read-file"
+    ]
+}

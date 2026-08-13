@@ -1,0 +1,12 @@
+{
+    "model": "glm-4.7-flash:q4_K_M",
+    "tools": [
+        "store-memory",
+        "search-memory",
+        "get-memory",
+        "read-file",
+        "write-file",
+        "add-new-lines-to-file",
+        "shell-command"
+    ]
+}
