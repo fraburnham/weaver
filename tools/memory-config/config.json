@@ -1,0 +1,6 @@
+{
+    "db_file": "~/.weaver/memory/memory.db",
+    "embedding_model_file": "~/.weaver/memory/nomic-embed-text-v2-moe.Q6_K.gguf",
+    "sqlite_plugins_path": "~/.weaver/memory/",
+    "markdown_path": "~/.weaver/memory/"
+}

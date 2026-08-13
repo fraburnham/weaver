@@ -1,0 +1,20 @@
+{
+    "type": "function",
+    "function": {
+        "name": "search-docs",
+        "description": "Semantic search for information in docs that have been ingested using `prepare-docs`. Prefer this over grep when searching for project-local documentation.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "description": "What you're trying to use the docs to understand or find.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "query"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

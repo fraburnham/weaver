@@ -1,0 +1,39 @@
+#!/usr/bin/env -S nu --stdin
+
+def config []: nothing -> record {
+  open ($"($env.CURRENT_FILE | path dirname)/../memory-config/config.json" | path expand)
+}
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let config = config
+  let memory_file = $"($config.markdown_path)/($params.topic).md"
+  | path expand
+
+  mkdir ($config.markdown_path | path expand)
+  mkdir ($config.db_file | path expand | path dirname)
+
+  if ($params.overwrite? | default false) {
+    try {
+      rm $memory_file
+    }
+  }
+
+  $params.content
+  | save $memory_file
+
+  # TODO: try to make this work with `.parameter`
+  $"
+.load '($"($config.sqlite_plugins_path)/vector" | path expand)'
+.load '($"($config.sqlite_plugins_path)/memory" | path expand)'
+
+select memory_set_model\('local', '($config.embedding_model_file | path expand)');
+
+-- Add an entire documentation directory
+select memory_add_directory\('($config.markdown_path | path expand)', 'memory');
+  "
+  | sqlite3 ($config.db_file | path expand)
+
+  "Memory stored!"
+}

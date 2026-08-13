@@ -1,0 +1,24 @@
+#!/usr/bin/env -S nu --stdin
+
+def config []: nothing -> record {
+  open ($"($env.CURRENT_FILE | path dirname)/../docs-config/config.json" | path expand)
+}
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let config = config
+
+  $"
+.parameter set :model '($config.embedding_model_file | path expand)'
+
+.load '($"($config.sqlite_plugins_path)/vector" | path expand)'
+.load '($"($config.sqlite_plugins_path)/memory" | path expand)'
+
+select memory_set_model\('local', :model);
+select memory_add_directory\('./', 'docs');
+  "
+  | sqlite3 ($config.db_file | path expand)
+
+  "Docs processed!"
+}

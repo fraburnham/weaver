@@ -1,0 +1,37 @@
+#!/usr/bin/env -S nu --stdin
+
+def overwrite [
+  path: string
+  start: int
+  end: int
+  new_lines: string
+]: nothing -> string {
+  let lines = open --raw $path
+  | lines
+
+  $lines
+  | take ($start - 1)
+  | append $new_lines
+  | append ($lines | skip $end)
+  | str join "\n"
+}
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+
+  let start = $params.firstReplacedLine
+  let end = $params.lastReplacedLine
+  let newLines = $params.newLines
+  let relativePath = $"./($params.relativePath)"
+  | path expand
+
+  overwrite $relativePath $start $end $newLines
+  | tee { save -f $relativePath }
+  | lines
+  | enumerate
+  | each { |line|
+    $"($line.index + 1): ($line.item)"
+  }
+  | str join "\n"
+}

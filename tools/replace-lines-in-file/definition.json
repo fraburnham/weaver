@@ -1,0 +1,35 @@
+{
+    "type": "function",
+    "function": {
+        "name": "replace-lines-in-file",
+        "description": "Overwrite lines in an existing file. Use this tool when updating code/config/etc files and modifying or removing **existing** lines, not adding new lines. You MUST read any files you intend to update with line numbers enabled so you're able to correctly generate a call to this tool. The updated file will be returned with line numbers added to the start of each line like `<num>: <content>`. The size of the old and new hunks do not need to match. The lines between firstReplacedLine and lastReplacedLine (both inclusive) will be deleted and newLines put in there instead.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "firstReplacedLine": {
+                    "description": "The first line that will be replaced with the content from newLines.",
+                    "type": "number"
+                },
+                "lastReplacedLine": {
+                    "description": "The last line that will be replaced with the content from newLines.",
+                    "type": "number"
+                },
+                "newLines": {
+                    "description": "The new lines that will be inserted. Existing lines can be deleted by leaving newLines as the empty string.",
+                    "type": "string"
+                },
+                "relativePath": {
+                    "description": "The file path whose content will be updated, relative to the current directory.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "firstReplacedLine",
+                "lastReplacedLine",
+                "newLines",
+                "relativePath"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

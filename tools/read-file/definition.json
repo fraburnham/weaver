@@ -1,0 +1,25 @@
+{
+    "type": "function",
+    "function": {
+        "name": "read-file",
+        "description": "Read a utf-8 encoded file from disk",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "relativePath": {
+                    "description": "The file path relative to the current directory (./ will be prefixed for safety)",
+                    "type": "string"
+                },
+                "lineNumbers": {
+                    "description": "Start each line with `<line-num>: ` to simplify file updates. Defaults to true. Set it to false if you're just reading documentation or similar. Leave as true if you'll need to update the file shortly after reading it.",
+                    "type": "boolean",
+                    "default": true
+                }
+            },
+            "required": [
+                "relativePath"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

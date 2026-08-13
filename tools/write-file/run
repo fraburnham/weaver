@@ -1,0 +1,15 @@
+#!/usr/bin/env -S nu --stdin
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let relativePath = $"./($params.relativePath)"
+  | path expand
+
+  mkdir ($relativePath | path dirname)
+  
+  $params.content
+  | save -f $relativePath
+
+  $"'($relativePath)' written"
+}

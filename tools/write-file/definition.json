@@ -1,0 +1,25 @@
+{
+    "type": "function",
+    "function": {
+        "name": "write-file",
+        "description": "Write a utf-8 encoded string to a file to disk",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "description": "The utf-8 encoded string to write",
+                    "type": "string"
+                },
+                "relativePath": {
+                    "description": "The file path relative to the current directory (./ will be prefixed for safety)",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "content",
+                "relativePath"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

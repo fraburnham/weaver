@@ -1,0 +1,19 @@
+#!/usr/bin/env -S nu --stdin
+
+def "searxng config" [] {
+  open $"($env.CURRENT_FILE | path dirname)/config.json"
+}
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let searxng_config = searxng config
+
+  http get $"($env| get $searxng_config.hostVar)/search?q=($params.q | url encode)&format=json"
+  | get results
+  | select url title content score publishedDate
+  | sort-by --reverse score
+  | take 5
+  | to md # I wonder if markdown will be better than json... they respond in markdown...
+  # TODO: rename content to summary
+}

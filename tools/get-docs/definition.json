@@ -1,0 +1,20 @@
+{
+    "type": "function",
+    "function": {
+        "name": "get-docs",
+        "description": "Retreive a docs file that was found with `search-docs` after being ingested by `process-docs`. Returns a markdown file's contents.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "doc_path": {
+                    "description": "`doc_path` value returned by `search-docs`",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "doc_path"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

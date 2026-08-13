@@ -1,0 +1,37 @@
+#!/usr/bin/env -S nu --stdin
+
+def config []: nothing -> record {
+  open ($"($env.CURRENT_FILE | path dirname)/../memory-config/config.json" | path expand)
+}
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let config = config
+
+  mkdir ($config.db_file | path expand | path dirname)
+
+  $"
+.parameter set :query '($params.query)'
+.load '($"($config.sqlite_plugins_path)/vector" | path expand)'
+.load '($"($config.sqlite_plugins_path)/memory" | path expand)'
+
+select memory_set_model\('local', '($config.embedding_model_file | path expand)');
+
+-- Search your memory semantically
+select path as topic, snippet
+FROM memory_search
+WHERE query = :query;
+  "
+  | sqlite3 -json ($config.db_file | path expand)
+  | jq -s '.'
+  | from json
+  | do {
+    try {
+      get 1
+    } catch {
+      error make { msg: "No memory results" }
+    }
+  }
+  | to md
+}

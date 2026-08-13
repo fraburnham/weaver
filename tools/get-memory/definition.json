@@ -1,0 +1,20 @@
+{
+    "type": "function",
+    "function": {
+        "name": "get-memory",
+        "description": "Fetch a memory by topic.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "topic": {
+                    "description": "The topic of the memory to fetch. Find the topic by using `search-memory`.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "topic"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

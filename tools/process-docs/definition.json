@@ -1,0 +1,13 @@
+{
+    "type": "function",
+    "function": {
+        "name": "process-docs",
+        "description": "Find all markdown files in a project and ingest them for semantic search. Use this tool, `search-docs` and `get-docs` to navigate docs more effectively than grepping.",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+            "additionalProperties": false
+        }
+    }
+}

@@ -1,0 +1,21 @@
+#!/usr/bin/env -S nu --stdin
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let relativePath = $"./($params.relativePath)"
+  | path expand
+
+  open --raw $relativePath
+  | if ($params.lineNumbers? | default true) {
+    $in
+    | lines
+    | enumerate
+    | each { |line|
+      $"($line.index + 1): ($line.item)"
+    }
+    | str join "\n"
+  } else {
+    $in
+  }
+}

@@ -1,0 +1,30 @@
+{
+    "type": "function",
+    "function": {
+        "name": "store-memory",
+        "description": "Store a markdown-formatted memory so that it can be searched for semantically later",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "topic": {
+                    "description": "Ten words or less that describes the memory. If the topic already exists it will only be replaced if `overwrite` is `false`.",
+                    "type": "string"
+                },
+                "content": {
+                    "description": "The markdown-formatted memory content. The header line should briefly summarize the information in the memory. There should be enough detail so that semantic search can find this memory later, but no spurious details so that only relevant memories are returned during search.",
+                    "type": "string"
+                },
+                "overwrite": {
+                    "description": "When `false` if a memory with this topic already exists it will not be replaced. When `true` if a memory with this topic already exists it **will** be replaced. Defaults to `false`.",
+                    "type": "boolean",
+                    "default": false
+                }
+            },
+            "required": [
+                "topic",
+                "contents"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

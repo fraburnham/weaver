@@ -1,0 +1,20 @@
+{
+    "type": "function",
+    "function": {
+        "name": "shell-command",
+        "description": "Run a shell command on the host machine via /bin/sh.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "description": "The command string to pass to \"sh -c '<command>'\". The command given will be wrapped in single quotes.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "command"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

@@ -1,0 +1,8 @@
+#!/usr/bin/env -S nu --stdin
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+
+  open --raw ($"./($params.doc_path)" | path expand)
+}

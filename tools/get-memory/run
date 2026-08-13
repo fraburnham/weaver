@@ -1,0 +1,15 @@
+#!/usr/bin/env -S nu --stdin
+
+def config []: nothing -> record {
+  open ($"($env.CURRENT_FILE | path dirname)/../memory-config/config.json" | path expand)
+}
+
+export def main []: string -> string {
+  let input = $in | from json
+  let params = $input.tool_call.function.arguments
+  let config = config
+  let memory_file = $"($config.markdown_path)/($params.topic)"
+  | path expand
+
+  open --raw $memory_file
+}

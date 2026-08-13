@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+
+if ! command -v jq; then
+  echo "Unable to use 'sh' tool because 'jq' is missing."
+  return 1
+fi
+
+sh -i -c "$(jq -r '.tool_call.function.arguments.command' -)"

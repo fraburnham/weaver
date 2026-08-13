@@ -1,0 +1,30 @@
+{
+    "type": "function",
+    "function": {
+        "name": "add-new-lines-to-file",
+        "description": "Add new lines to an existing file. Use this tool when updating code/config/etc files and adding **completely new** lines, not modifying existing lines. You MUST read any files you intend to update with line numbers enabled so you're able to correctly generate a call to this tool. The updated file will be returned with line numbers added to the start of each line like `<num>: <content>`.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "insertAfter": {
+                    "description": "The new lines will be inserted AFTER this line. You MUST have read the file with line numbers enabled.",
+                    "type": "number"
+                },
+                "newLines": {
+                    "description": "The new lines that will be inserted.",
+                    "type": "string"
+                },
+                "relativePath": {
+                    "description": "The file path whose content will be updated, relative to the current directory.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "insertAfter",
+                "newLines",
+                "relativePath"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

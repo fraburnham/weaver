@@ -1,0 +1,20 @@
+{
+    "type": "function",
+    "function": {
+        "name": "search-memory",
+        "description": "Fuzzy and semantic search of memories.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {
+                    "description": "This query will be used to find memories. Any memories that are semantically related or related by fuzzy match will be returned as topic and summary. Be sure to provide enough detail to ensure the memories are relevant.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "query"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
