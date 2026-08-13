@@ -8,6 +8,18 @@ alias Weaver.TUI
 alias Weaver.Api.Bedrock.Request
 alias Weaver.Api.Ollama
 
+defmodule Utils do
+  def personas_config do
+    config = [{:base_dir, System.get_env("WEAVER_PERSONAS_BASE_DIR")}]
+
+    if System.get_env("WEAVER_PERSONA") do
+      [{:name, System.get_env("WEAVER_PERSONA")} | config]
+    else
+      config
+    end
+  end
+end
+
 config :weaver,
   history: [
     base_dir: System.get_env("WEAVER_HISTORY_BASE_DIR", ".weaver/history/")
@@ -23,10 +35,7 @@ config :weaver,
         false
       end
   ],
-  personas: [
-    base_dir: System.get_env("WEAVER_PERSONAS_BASE_DIR"),
-    name: System.get_env("WEAVER_PERSONA")
-  ],
+  personas: Utils.personas_config(),
   bedrock: [
     credential_process: &Weaver.Api.Bedrock.Request.awscli_credential_process/0
   ],
