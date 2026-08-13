@@ -12,12 +12,14 @@ defmodule Weaver.LLM do
             api: nil,
             context: nil,
             system_prompt: nil,
-            tools_available: nil
+            tools_available: nil,
+            total_tokens: 0
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
   def init(config = %LLM{model: _, api: api, system_prompt: _, tools_available: _}) do
+    # TODO: this should fail if the child fails to start
     api.start_link()
 
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
@@ -60,18 +62,18 @@ defmodule Weaver.LLM do
   @impl true
   def handle_info(msg = %{role: role}, state = %LLM{}) when role in ["user", "tool"] do
     state = add_message(state, msg)
-    response = request(state)
+    %{message: response, total_tokens: total_tokens} = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
-    {:noreply, add_message(state, response)}
+    {:noreply, add_message(state, response) |> add_context_usage(total_tokens)}
   end
 
   # Sometimes multiple tools are called in a single turn
   @impl true
-  def handle_info(tool_responses = [%{role: role} | _], state) when role in ["tool"] do
+  def handle_info(tool_responses = [%{role: "tool"} | _], state) do
     state = List.foldr(tool_responses, state, fn resp, acc -> add_message(acc, resp) end)
-    response = request(state)
+    %{message: response, total_tokens: total_tokens} = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
-    {:noreply, add_message(state, response)}
+    {:noreply, add_message(state, response) |> add_context_usage(total_tokens)}
   end
 
   # Messages from the llm are already added to the context
@@ -85,12 +87,15 @@ defmodule Weaver.LLM do
     context
     |> context_to_api_context()
     |> api.chat()
-    |> Map.get(:message)
   end
 
   # Add a message to the context
   defp add_message(state = %LLM{}, msg) do
     %LLM{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
+  end
+
+  defp add_context_usage(state = %LLM{}, total_tokens) do
+    %LLM{state | total_tokens: total_tokens}
   end
 
   defp context_to_api_context(context) do
