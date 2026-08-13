@@ -126,7 +126,7 @@ config :weaver,
 
 ### LLM
 
-`LLM` ties together the API and message queue by:
+`LLM` ties together the API and messages topic by:
 - Maintaining conversation context with system prompt and message history
 - Calling the API for each llm turn
 - Broadcasting responses to all subscribers
