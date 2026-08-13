@@ -19,6 +19,7 @@ defmodule Weaver.TUI do
   @impl true
   def init(config = %TUI{}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
+    Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
 
     header()
     prompt()
@@ -26,10 +27,39 @@ defmodule Weaver.TUI do
     {:ok, config}
   end
 
+  @impl true
+  def handle_info(:resume_end, state) do
+    prompt()
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:resume, _}, state) do
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(%{role: "user", content: content, resume: true}, config = %TUI{}) do
+    [:red, "\n> ", :reset, content]
+    |> IO.ANSI.format()
+    |> IO.puts()
+
+    {:noreply, config}
+  end
+
+  @impl true
+  def handle_info(msg = %{role: "assistant", resume: true}, config = %TUI{}) do
+    show_thinking(config.show_thinking, msg)
+    show_content(msg)
+    show_tool_calls(msg)
+
+    {:noreply, config}
+  end
+
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
   def handle_info(msg = %{role: "assistant"}, config = %TUI{}) do
-    # TODO: a message module so that I can define a message struct? probably will help with consistency later
     show_thinking(config.show_thinking, msg)
     show_content(msg)
     show_tool_calls(msg)
@@ -77,8 +107,11 @@ defmodule Weaver.TUI do
     send(__MODULE__, :prompt)
   end
 
-  defp show_thinking(true, %{thinking: thinking}),
-    do: [:faint, :cyan, "\n", thinking, "\n"] |> IO.ANSI.format() |> IO.puts()
+  defp show_thinking(true, %{thinking: thinking}) do
+    [:faint, :cyan, "\n", thinking, "\n"]
+    |> IO.ANSI.format()
+    |> IO.puts()
+  end
 
   defp show_thinking(_, _), do: nil
 
@@ -105,13 +138,31 @@ defmodule Weaver.TUI do
   end
 
   defp user_input("/clear") do
+    # TODO: probably a commands module that will serve as a place to find all the commands
+    #       and see their shapes. From a PubSub point of view, not a slash command pov.
+    #       That still seems like a macro that builds the handlers and the help handler.
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+    # TODO: don't show here. It'll happen by message.
     prompt()
   end
 
-  # TODO: /resume
+  defp user_input("/resume") do
+    IO.write("\n")
+
+    Weaver.History.sessions()
+    |> Enum.each(fn filename ->
+      IO.puts(filename)
+    end)
+
+    prompt()
+  end
+
+  defp user_input(<<"/resume ", session::binary>>) do
+    Weaver.History.resume(session)
+  end
+
   # TODO: /clear-to-last-prompt
-  # TODO: /help
+  # TODO: /help (and then generalize a fn that handles commands based on a map or struct or something)
 
   defp user_input(<<"/", command::binary>>) do
     [:bright, :red, "Unknown command: ", command]

@@ -18,16 +18,42 @@ defmodule Weaver.LLM do
 
   @impl true
   def init(config = %LLM{model: _, api: api, system_prompt: _, tools_available: _}) do
-    Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
-    Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
     api.start_link()
 
-    {:ok, %LLM{config | context: initial_context(config)}}
+    Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
+    Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
+
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+
+    {:ok, config}
   end
 
   @impl true
   def handle_info(:clear, state = %LLM{}) do
     {:noreply, %LLM{state | context: initial_context(state)}}
+  end
+
+  # When resuming don't add the initial state, it'll come over the "messages" topic
+  @impl true
+  def handle_info({:resume, :clear}, state = %LLM{}) do
+    {:noreply, %LLM{state | context: %{initial_context(state) | messages: []}}}
+  end
+
+  @impl true
+  def handle_info({:resume, _}, state) do
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(:resume_end, state) do
+    # TODO: Will need a way to detect whose turn it is and possibly send the context to the llm
+    {:noreply, state}
+  end
+
+  # Handle messages sent during the resume process
+  @impl true
+  def handle_info(msg = %{resume: true}, state = %LLM{}) do
+    {:noreply, add_message(state, msg)}
   end
 
   # Messages from tool calls or user prompts have to be sent to the llm

@@ -46,6 +46,12 @@ defmodule Weaver.Tools do
     {:reply, tool_definitions, %Tools{config | tool_definitions: tool_definitions}}
   end
 
+  # Tools don't need to be handled during resume
+  @impl true
+  def handle_info(%{resume: true}, config) do
+    {:noreply, config}
+  end
+
   # Call tools
   @impl true
   def handle_info(
