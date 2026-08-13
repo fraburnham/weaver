@@ -64,6 +64,7 @@ defmodule Weaver.LLM do
     state = add_message(state, msg)
     %{message: response, total_tokens: total_tokens} = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "metrics", {:total_tokens, total_tokens})
     {:noreply, add_message(state, response) |> add_context_usage(total_tokens)}
   end
 
@@ -73,6 +74,7 @@ defmodule Weaver.LLM do
     state = List.foldr(tool_responses, state, fn resp, acc -> add_message(acc, resp) end)
     %{message: response, total_tokens: total_tokens} = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "metrics", {:total_tokens, total_tokens})
     {:noreply, add_message(state, response) |> add_context_usage(total_tokens)}
   end
 

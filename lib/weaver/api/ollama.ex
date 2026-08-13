@@ -13,7 +13,7 @@ defmodule Weaver.Api.Ollama do
     %{base_url: base_url} = struct!(Weaver.Api.Ollama, Application.get_env(:weaver, :ollama))
 
     # TODO: use response streaming
-    %{message: message, prompt_eval_count: input_tokens, eval_count: total_tokens} =
+    %{message: message, prompt_eval_count: input_tokens, eval_count: output_tokens} =
       Req.post!(%URI{URI.parse(base_url) | path: "/api/chat"},
         json: Map.put(context, :stream, false),
         receive_timeout: :infinity,
@@ -24,7 +24,7 @@ defmodule Weaver.Api.Ollama do
     %{
       message: message,
       input_tokens: input_tokens,
-      total_tokens: total_tokens
+      total_tokens: input_tokens + output_tokens
     }
   end
 end
@@ -41,7 +41,7 @@ defmodule Weaver.Api.OllamaMock do
   def chat(%{messages: messages}) do
     # If the last message is a tool role then respond with a plain response
     # Else respond with a tool call response
-    %{message: message, prompt_eval_count: input_tokens, eval_count: total_tokens} =
+    %{message: message, prompt_eval_count: input_tokens, eval_count: output_tokens} =
       File.read!(
         if List.last(messages, %{role: "assistant"})[:role] === "tool" do
           "dev/ollama-response.json"
@@ -55,7 +55,7 @@ defmodule Weaver.Api.OllamaMock do
     %{
       message: message,
       input_tokens: input_tokens,
-      total_tokens: total_tokens
+      total_tokens: input_tokens + output_tokens
     }
   end
 end

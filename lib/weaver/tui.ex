@@ -12,7 +12,9 @@ defmodule Weaver.TUI do
   use GenServer
   alias Weaver.TUI
 
-  defstruct show_thinking: false
+  defstruct show_thinking: false, total_tokens: 0
+
+  @prompt_color :light_red
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
@@ -20,6 +22,7 @@ defmodule Weaver.TUI do
   def init(config = %TUI{}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
+    Phoenix.PubSub.subscribe(Weaver.PubSub, "metrics")
 
     header()
     prompt()
@@ -41,7 +44,7 @@ defmodule Weaver.TUI do
 
   @impl true
   def handle_info(%{role: "user", content: content, resume: true}, config = %TUI{}) do
-    [:red, "\n> ", :reset, content]
+    [@prompt_color, "\n> ", :light_white, content]
     |> IO.ANSI.format()
     |> IO.puts()
 
@@ -81,14 +84,27 @@ defmodule Weaver.TUI do
 
   # Display a prompt and broadcast the user input
   @impl true
-  def handle_info(:prompt, state = %TUI{}) do
-    [:red, "\n> "]
+  def handle_info(:prompt, state = %TUI{total_tokens: total_tokens}) do
+    [
+      :faint,
+      "\nTokens used: ",
+      Integer.to_string(total_tokens),
+      "\n",
+      :reset,
+      @prompt_color,
+      "> "
+    ]
     |> IO.ANSI.format()
     |> IO.gets()
     |> String.trim()
     |> user_input()
 
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:total_tokens, total_tokens}, state = %TUI{}) do
+    {:noreply, %{state | total_tokens: total_tokens}}
   end
 
   defp header do
