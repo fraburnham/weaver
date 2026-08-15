@@ -9,6 +9,7 @@ defmodule Weaver.LLM do
   alias Weaver.Tools
 
   defstruct model: nil,
+            context_window: nil,
             api: nil,
             context: nil,
             system_prompt: nil,
@@ -30,6 +31,10 @@ defmodule Weaver.LLM do
 
     {:ok, config}
   end
+
+  #
+  # "commands" handlers
+  #
 
   @impl true
   def handle_info(:clear, state = %LLM{skip_init: true}), do: {:noreply, state}
@@ -78,6 +83,10 @@ defmodule Weaver.LLM do
     # TODO: Will need a way to detect whose turn it is and possibly send the context to the llm
     {:noreply, state}
   end
+
+  #
+  # "messages" handlers
+  #
 
   # Handle messages sent during the resume process
   @impl true
@@ -131,7 +140,8 @@ defmodule Weaver.LLM do
   defp initial_context(%LLM{
          model: model,
          system_prompt: system_prompt,
-         tools_available: tools_available
+         tools_available: tools_available,
+         context_window: context_window
        }) do
     system_prompt = %{
       role: "system",
@@ -143,7 +153,10 @@ defmodule Weaver.LLM do
     %{
       model: model,
       messages: [system_prompt],
-      tools: Tools.get_tool_definitions(tools_available)
+      tools: Tools.get_tool_definitions(tools_available),
+      options: %{
+        num_ctx: context_window
+      }
     }
   end
 end
