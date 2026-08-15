@@ -10,7 +10,9 @@ defmodule Weaver.TUI do
   """
 
   use GenServer
+  require Weaver.TUI.SlashCommands
   alias Weaver.TUI
+  alias Weaver.TUI.SlashCommands
 
   defstruct show_thinking: false, total_tokens: 0
 
@@ -99,6 +101,8 @@ defmodule Weaver.TUI do
     |> String.trim()
     |> user_input()
 
+    # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
+
     {:noreply, state}
   end
 
@@ -113,13 +117,13 @@ defmodule Weaver.TUI do
     |> IO.puts()
   end
 
-  defp prompt(msg) do
+  def prompt(msg) do
     if not Map.has_key?(msg, :tool_calls) do
       prompt()
     end
   end
 
-  defp prompt do
+  def prompt do
     send(__MODULE__, :prompt)
   end
 
@@ -148,21 +152,18 @@ defmodule Weaver.TUI do
 
   defp show_tool_calls(_), do: nil
 
-  defp user_input("/exit") do
+  defp exit do
     System.stop(0)
     Process.sleep(:infinity)
   end
 
-  defp user_input("/clear") do
-    # TODO: probably a commands module that will serve as a place to find all the commands
-    #       and see their shapes. From a PubSub point of view, not a slash command pov.
-    #       That still seems like a macro that builds the handlers and the help handler.
+  defp clear do
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
     # TODO: don't show here. It'll happen by message.
     prompt()
   end
 
-  defp user_input("/resume") do
+  defp resume do
     IO.write("\n")
 
     Weaver.History.sessions()
@@ -173,20 +174,16 @@ defmodule Weaver.TUI do
     prompt()
   end
 
-  defp user_input(<<"/resume ", session::binary>>) do
-    Weaver.History.resume(session)
-  end
+  SlashCommands.generate_slash_commands([
+    {"/exit", [do: exit(), help: "Exit this session."]},
+    {"/clear", [do: clear(), help: "Clear the context. This starts a new history session, too."]},
+    {"/resume", [do: resume(), help: "List previous sessions that can be resumed."]},
+    {<<"/resume ", session::binary>>,
+     [do: Weaver.History.resume(session), help: "Resume a specific session. You can list sessions with `/resume`.", command: "/resume <session>"]}
+  ])
 
+  # TODO: /compact
   # TODO: /clear-to-last-prompt
-  # TODO: /help (and then generalize a fn that handles commands based on a map or struct or something)
-
-  defp user_input(<<"/", command::binary>>) do
-    [:bright, :red, "Unknown command: ", command]
-    |> IO.ANSI.format()
-    |> IO.puts()
-
-    prompt()
-  end
 
   # If the user input wasn't a slash command broadcast it
   defp user_input(content) do
