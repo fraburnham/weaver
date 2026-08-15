@@ -4,8 +4,9 @@ defmodule Weaver.TUI.SlashCommands do
     
     commands
     |> Enum.map(fn {command, opts} ->
-      [opts[:command] || command, ": ", opts[:help], "\n"]
+      [:bright, opts[:command] || command, :reset, ": ", opts[:help], "\n"]
     end)
+    |> IO.ANSI.format()
     |> IO.write()
   end
 
