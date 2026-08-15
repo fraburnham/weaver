@@ -32,6 +32,10 @@ defmodule Weaver.TUI do
     {:ok, config}
   end
 
+  #
+  # "commands" handling
+  #
+
   @impl true
   def handle_info(:resume_end, state) do
     prompt()
@@ -43,6 +47,38 @@ defmodule Weaver.TUI do
   def handle_info({:resume, _}, state) do
     {:noreply, state}
   end
+
+  # Display a prompt and broadcast the user input
+  @impl true
+  def handle_info(:prompt, state = %TUI{total_tokens: total_tokens}) do
+    [
+      :faint,
+      "\nTokens used: ",
+      Integer.to_string(total_tokens),
+      "\n",
+      :reset,
+      @prompt_color,
+      "> "
+    ]
+    |> IO.ANSI.format()
+    |> IO.gets()
+    |> String.trim()
+    |> user_input()
+
+    # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
+
+    {:noreply, state}
+  end
+
+  # Ignore unknown commands
+  @impl true
+  def handle_info(command, state) when is_atom(command) do
+    {:noreply, state}
+  end
+
+  #
+  # "messages" handling
+  #
 
   @impl true
   def handle_info(%{role: "user", content: content, resume: true}, config = %TUI{}) do
@@ -84,27 +120,9 @@ defmodule Weaver.TUI do
     {:noreply, state}
   end
 
-  # Display a prompt and broadcast the user input
-  @impl true
-  def handle_info(:prompt, state = %TUI{total_tokens: total_tokens}) do
-    [
-      :faint,
-      "\nTokens used: ",
-      Integer.to_string(total_tokens),
-      "\n",
-      :reset,
-      @prompt_color,
-      "> "
-    ]
-    |> IO.ANSI.format()
-    |> IO.gets()
-    |> String.trim()
-    |> user_input()
-
-    # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
-
-    {:noreply, state}
-  end
+  #
+  # "metrics" handling
+  #
 
   @impl true
   def handle_info({:total_tokens, total_tokens}, state = %TUI{}) do
@@ -174,15 +192,23 @@ defmodule Weaver.TUI do
     prompt()
   end
 
+  defp compact do
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :compact)
+  end
+
   SlashCommands.generate_slash_commands([
     {"/exit", [do: exit(), help: "Exit this session."]},
     {"/clear", [do: clear(), help: "Clear the context. This starts a new history session, too."]},
     {"/resume", [do: resume(), help: "List previous sessions that can be resumed."]},
     {<<"/resume ", session::binary>>,
-     [do: Weaver.History.resume(session), help: "Resume a specific session. You can list sessions with `/resume`.", command: "/resume <session>"]}
+     [
+       do: Weaver.History.resume(session),
+       help: "Resume a specific session. You can list sessions with `/resume`.",
+       command: "/resume <session>"
+     ]},
+    {"/compact", [do: compact(), help: "Compact this session to reclaim context."]}
   ])
 
-  # TODO: /compact
   # TODO: /clear-to-last-prompt
 
   # If the user input wasn't a slash command broadcast it

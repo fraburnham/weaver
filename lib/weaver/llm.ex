@@ -13,7 +13,8 @@ defmodule Weaver.LLM do
             context: nil,
             system_prompt: nil,
             tools_available: nil,
-            total_tokens: 0
+            total_tokens: 0,
+            skip_init: false
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
@@ -31,8 +32,36 @@ defmodule Weaver.LLM do
   end
 
   @impl true
+  def handle_info(:clear, state = %LLM{skip_init: true}), do: {:noreply, state}
+
+  @impl true
   def handle_info(:clear, state = %LLM{}) do
     {:noreply, %LLM{state | context: initial_context(state)}}
+  end
+
+  @impl true
+  def handle_info(:compact, state = %LLM{}) do
+    %{message: summary} =
+      %LLM{state | context: %{state.context | tools: nil}}
+      |> add_message(%{
+        role: "user",
+        content:
+          "Summarize our conversation so far. Include enough detail that a fresh agent would be able to pick up in the middle of this conversation."
+      })
+      |> request()
+
+    initial_context = initial_context(state)
+
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+
+    initial_context[:messages]
+    |> Enum.each(fn msg -> Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", msg) end)
+
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", summary)
+
+    {:noreply,
+     %LLM{state | context: initial_context, skip_init: true}
+     |> add_message(summary)}
   end
 
   # When resuming don't add the initial state, it'll come over the "messages" topic
@@ -42,9 +71,7 @@ defmodule Weaver.LLM do
   end
 
   @impl true
-  def handle_info({:resume, _}, state) do
-    {:noreply, state}
-  end
+  def handle_info({:resume, _}, state), do: {:noreply, state}
 
   @impl true
   def handle_info(:resume_end, state) do
@@ -54,9 +81,7 @@ defmodule Weaver.LLM do
 
   # Handle messages sent during the resume process
   @impl true
-  def handle_info(msg = %{resume: true}, state = %LLM{}) do
-    {:noreply, add_message(state, msg)}
-  end
+  def handle_info(msg = %{resume: true}, state = %LLM{}), do: {:noreply, add_message(state, msg)}
 
   # Messages from tool calls or user prompts have to be sent to the llm
   @impl true
@@ -80,9 +105,8 @@ defmodule Weaver.LLM do
 
   # Messages from the llm are already added to the context
   @impl true
-  def handle_info(%{role: role}, state) when role in ["assistant", "system"] do
-    {:noreply, state}
-  end
+  def handle_info(%{role: role}, state) when role in ["assistant", "system"],
+    do: {:noreply, state}
 
   # Send a request to the api (using an api module)
   defp request(%LLM{context: context, api: api}) do

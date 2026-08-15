@@ -42,8 +42,8 @@ defmodule Weaver.History do
   end
 
   @impl true
-  def handle_info(:clear, state = {file_descriptor, _}) do
-    update_file(file_descriptor, %{command: "clear"})
+  def handle_info(command, state = {file_descriptor, _}) when is_atom(command) do
+    update_file(file_descriptor, %{command: command})
 
     {:noreply, state}
   end
