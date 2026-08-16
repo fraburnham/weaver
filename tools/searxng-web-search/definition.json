@@ -8,7 +8,7 @@
       "properties": {
         "q": {
           "description": "The optimized search query. Transform a natural language input into a concise, keyword-based string. Remove all conversational filler, politeness, and question marks (e.g., convert 'Can you find me the current price of Bitcoin?' to 'Bitcoin current price'). Focus on core subjects.",
-          "type": "string",
+          "type": "string"
         }
       },
       "required": [

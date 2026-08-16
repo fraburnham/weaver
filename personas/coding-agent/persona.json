@@ -1,5 +1,6 @@
 {
-    "model": "glm-4.7-flash:q4_K_M",
+    "model": "qwen3.8:27b-q4_K_M",
+    "context_window": 32000,
     "tools": [
         "store-memory",
         "search-memory",
@@ -7,6 +8,7 @@
         "read-file",
         "write-file",
         "add-new-lines-to-file",
-        "shell-command"
+        "shell-command",
+        "searxng-web-search"
     ]
 }
