@@ -14,7 +14,7 @@ defmodule Weaver.LLM do
             context: nil,
             system_prompt: nil,
             tools_available: nil,
-            total_tokens: 0,
+            total_tokens: nil,
             skip_init: false
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
@@ -41,7 +41,7 @@ defmodule Weaver.LLM do
 
   @impl true
   def handle_info(:clear, state = %LLM{}) do
-    {:noreply, %LLM{state | context: initial_context(state)}}
+    {:noreply, %LLM{state | context: initial_context(state), total_tokens: nil}}
   end
 
   @impl true

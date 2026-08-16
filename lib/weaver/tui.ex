@@ -14,7 +14,7 @@ defmodule Weaver.TUI do
   alias Weaver.TUI
   alias Weaver.TUI.SlashCommands
 
-  defstruct show_thinking: false, total_tokens: 0
+  defstruct show_thinking: false, total_tokens: nil
 
   @prompt_color :light_red
 
@@ -51,15 +51,21 @@ defmodule Weaver.TUI do
   # Display a prompt and broadcast the user input
   @impl true
   def handle_info(:prompt, state = %TUI{total_tokens: total_tokens}) do
-    [
-      :faint,
-      "\nTokens used: ",
-      Integer.to_string(total_tokens),
-      "\n",
-      :reset,
-      @prompt_color,
-      "> "
-    ]
+    (if total_tokens do
+       [
+         :faint,
+         "\nTokens used: ",
+         Integer.to_string(total_tokens),
+         "\n",
+         :reset
+       ]
+     else
+       []
+     end ++
+       [
+         @prompt_color,
+         "> "
+       ])
     |> IO.ANSI.format()
     |> IO.gets()
     |> String.trim()
@@ -68,6 +74,11 @@ defmodule Weaver.TUI do
     # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
 
     {:noreply, state}
+  end
+
+  @impl true
+  def handle_info(:clear, state = %TUI{}) do
+    {:noreply, %TUI{state | total_tokens: nil}}
   end
 
   # Ignore unknown commands

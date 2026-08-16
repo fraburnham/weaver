@@ -25,6 +25,7 @@ defmodule Weaver.Api.Ollama do
       message: message,
       input_tokens: input_tokens,
       total_tokens: input_tokens + output_tokens
+      # TODO: total_tokens is definitely wrong...
     }
   end
 end

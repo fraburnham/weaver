@@ -27,6 +27,15 @@ defmodule Weaver.History do
   end
 
   @impl true
+  def terminate(_reason, {file_descriptor, _}) do
+    File.close(file_descriptor)
+  end
+
+  #
+  # "commands" handlers
+  #
+
+  @impl true
   def handle_info(:resume_end, state) do
     {:noreply, state}
   end
@@ -42,11 +51,21 @@ defmodule Weaver.History do
   end
 
   @impl true
+  def handle_info(:clear, {_, base_dir}) do
+    {:ok, file_descriptor} = init_history_file(base_dir)
+    {:noreply, {file_descriptor, base_dir}}
+  end
+
+  @impl true
   def handle_info(command, state = {file_descriptor, _}) when is_atom(command) do
     update_file(file_descriptor, %{command: command})
 
     {:noreply, state}
   end
+
+  #
+  # "messages" handlers
+  #
 
   @impl true
   def handle_info(msg = %{role: _role}, state = {file_descriptor, _}) do
@@ -69,6 +88,10 @@ defmodule Weaver.History do
     {:reply, files, state}
   end
 
+  #
+  # public api handlers
+  #
+
   @impl true
   def handle_cast({:start_resume, history_file}, {_, base_dir}) do
     [base_dir, history_file]
@@ -89,10 +112,9 @@ defmodule Weaver.History do
     {:noreply, {file_descriptor, base_dir}}
   end
 
-  @impl true
-  def terminate(_reason, {file_descriptor, _}) do
-    File.close(file_descriptor)
-  end
+  #
+  # private helpers
+  #
 
   defp update_file(file_descriptor, msg) do
     IO.puts(file_descriptor, Jason.encode_to_iodata!(msg))
@@ -115,6 +137,10 @@ defmodule Weaver.History do
     File.mkdir_p!(base_dir |> Path.expand())
     File.open(history_file_path, [:append, :utf8])
   end
+
+  #
+  # public api
+  #
 
   def resume(history_file) do
     GenServer.cast(__MODULE__, {:start_resume, history_file})
