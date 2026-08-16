@@ -20,7 +20,8 @@ Phoenix.PubSub is the messaging bus that connects all components. The goal is to
       type: "function",
       function: %{name: String.t(), arguments: map()}
     } | []
-  ]
+  ],
+  resume: false # When `true` this message is being replayed from history
 }
 ```
 
@@ -28,7 +29,15 @@ Phoenix.PubSub is the messaging bus that connects all components. The goal is to
 
 | Event | Description |
 |-------|-------------|
-|`:clear` | Empty and re-initalize context |
+| `:clear` | Empty and re-initalize context |
+| `:compact` | Compact the current context |
+| `{:resume, command`} | A command being replayed will be in a tuple like this |
+| `:resume_end` | A resume message replay has ended |
+
+#### `"metrics"`
+
+| Metric | Description |
+| `{:total_tokens, total_tokens}` | Total tokens currently consumed by the context |
 
 ### DynamicSupervisor
 
@@ -89,6 +98,7 @@ A persona is built from a `persona.json` and a `PERSONA.md` in a directory named
 ```json
 {
     "model": "model-name-or-id",
+    "context_window": 128000,
     "tools": [
         "list",
         "of",
@@ -103,6 +113,7 @@ A persona is built from a `persona.json` and a `PERSONA.md` in a directory named
 | Key | Description |
 |-----|-------------|
 | `"model"` | The name or id of the model in a format that the api client can use |
+| `"context_window"` | The maximum number of tokens the context is allowed to use |
 | `"tools"` | A list of tool names this persona is allowed to call |
 
 #### `PERSONA.md`

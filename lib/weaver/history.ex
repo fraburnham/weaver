@@ -41,11 +41,6 @@ defmodule Weaver.History do
   end
 
   @impl true
-  def handle_info(%{resume: true}, state) do
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_info({:resume, _}, state) do
     {:noreply, state}
   end
@@ -66,6 +61,11 @@ defmodule Weaver.History do
   #
   # "messages" handlers
   #
+
+  @impl true
+  def handle_info(%{resume: true}, state) do
+    {:noreply, state}
+  end
 
   @impl true
   def handle_info(msg = %{role: _role}, state = {file_descriptor, _}) do
