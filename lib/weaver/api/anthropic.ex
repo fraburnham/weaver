@@ -93,7 +93,7 @@ defmodule Weaver.Api.Anthropic do
     Map.put(message, :tool_calls, [tool_call | current_tool_calls])
   end
 
-  def block_to_message(%{}, message), do: IO.inspect(message)
+  def block_to_message(%{}, message), do: message
 
   defp isolate_system_prompt(messages) do
     List.foldl(messages, %{system: [], messages: []}, fn
@@ -121,7 +121,12 @@ defmodule Weaver.Api.Anthropic do
      }} =
       Anthropix.init(api_key,
         base_url: "https://bedrock-mantle.us-east-1.api.aws/anthropic/v1",
-        decode_json: [keys: :atoms]
+        decode_json: [keys: :atoms],
+        headers: [
+          {"anthropic-version", "2023-06-01"},
+          {"user-agent", "anthropix/v0.6.2-patch-2026-08-21"},
+          {"anthropic-workspace-id", project}
+        ]
       )
       |> Anthropix.chat(
         model: model,
