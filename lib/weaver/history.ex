@@ -18,12 +18,10 @@ defmodule Weaver.History do
 
   @impl true
   def init(%History{base_dir: base_dir}) do
-    {:ok, file_descriptor} = init_history_file(base_dir)
-
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
 
-    {:ok, {file_descriptor, base_dir}}
+    {:ok, {nil, base_dir}}
   end
 
   @impl true
@@ -52,7 +50,8 @@ defmodule Weaver.History do
   end
 
   @impl true
-  def handle_info(command, state = {file_descriptor, _}) when is_atom(command) do
+  def handle_info(command, state = {file_descriptor, _})
+      when is_atom(command) and not is_nil(file_descriptor) do
     update_file(file_descriptor, %{command: command})
 
     {:noreply, state}
@@ -68,14 +67,16 @@ defmodule Weaver.History do
   end
 
   @impl true
-  def handle_info(msg = %{role: _role}, state = {file_descriptor, _}) do
+  def handle_info(msg = %{role: _role}, state = {file_descriptor, _})
+      when not is_nil(file_descriptor) do
     update_file(file_descriptor, msg)
 
     {:noreply, state}
   end
 
   @impl true
-  def handle_info(msgs = [%{role: _} | _], state = {file_descriptor, _}) do
+  def handle_info(msgs = [%{role: _} | _], state = {file_descriptor, _})
+      when not is_nil(file_descriptor) do
     for msg <- msgs, do: update_file(file_descriptor, msg)
 
     {:noreply, state}
