@@ -36,7 +36,8 @@ defmodule Weaver.MixProject do
       {:configparser_ex, "~> 4.0"},
       {:ex_aws_bedrock, "~> 2.5"},
       {:hackney, "~> 1.9"},
-      {:exile, "~> 0.14"}
+      {:exile, "~> 0.14"},
+      {:anthropix, "~> 0.6.2"}
     ]
   end
 end

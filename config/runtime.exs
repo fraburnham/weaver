@@ -41,6 +41,14 @@ config :weaver,
   ],
   ollama: [
     base_url: System.get_env("WEAVER_OLLAMA_BASE_URL")
+  ],
+  openai: [
+    project: System.get_env("WEAVER_OPENAI_PROJECT"),
+    api_key: System.get_env("WEAVER_OPENAI_API_KEY")
+  ],
+  anthropic: [
+    project: System.get_env("WEAVER_ANTHROPIC_PROJECT"),
+    api_key: System.get_env("WEAVER_ANTHROPIC_API_KEY")
   ]
 
 # TODO: optionally pull config details from XDG location?
