@@ -18,9 +18,11 @@ defmodule Weaver.Personas do
   end
 
   def model(%Personas{base_dir: base_dir, name: persona}) do
-    File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
-    |> Jason.decode!(keys: :atoms)
-    |> Map.fetch!(:model)
+    %{model: model, api: api} =
+      File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
+      |> Jason.decode!(keys: :atoms)
+
+    {model, Module.concat([api])}
   end
 
   def context_window(%Personas{base_dir: base_dir, name: persona}) do

@@ -1,5 +1,6 @@
 {
     "model": "qwen3.8:27b-q4_K_M",
+    "api": "Weaver.Api.Ollama",
     "context_window": 32000,
     "tools": [
         "store-memory",

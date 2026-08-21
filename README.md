@@ -98,6 +98,7 @@ A persona is built from a `persona.json` and a `PERSONA.md` in a directory named
 ```json
 {
     "model": "model-name-or-id",
+    "api": "Api.Module.Name",
     "context_window": 128000,
     "tools": [
         "list",
@@ -113,6 +114,7 @@ A persona is built from a `persona.json` and a `PERSONA.md` in a directory named
 | Key | Description |
 |-----|-------------|
 | `"model"` | The name or id of the model in a format that the api client can use |
+| `"api"` | The elixir module to use as the api backend that implements the `Weaver.Api` behaviour |
 | `"context_window"` | The maximum number of tokens the context is allowed to use |
 | `"tools"` | A list of tool names this persona is allowed to call |
 

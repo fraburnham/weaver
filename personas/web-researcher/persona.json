@@ -1,5 +1,6 @@
 {
     "model": "qwen3.5:9b-bf16",
+    "api": "Weaver.Api.Ollama",
     "tools": [
         "searxng-web-search"
     ]

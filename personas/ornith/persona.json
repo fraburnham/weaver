@@ -1,5 +1,6 @@
 {
     "model": "ornith:9b-q8_0",
+    "api": "Weaver.Api.Ollama",
     "context_window": 256000,
     "tools": [
         "store-memory",

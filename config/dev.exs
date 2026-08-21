@@ -34,5 +34,4 @@ end
 
 config :weaver,
   tools: [tool_modules: %{"mock" => Weaver.Mock}],
-  llm: [api: Weaver.Api.OllamaMock],
   personas: [name: "agent.nu-testing"]
