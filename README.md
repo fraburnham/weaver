@@ -31,7 +31,7 @@ Phoenix.PubSub is the messaging bus that connects all components. The goal is to
 |-------|-------------|
 | `:clear` | Empty and re-initalize context |
 | `:compact` | Compact the current context |
-| `{:resume, command`} | A command being replayed will be in a tuple like this |
+| `{:resume, command}` | A command being replayed will be in a tuple like this |
 | `:resume_end` | A resume message replay has ended |
 
 #### `"metrics"`
