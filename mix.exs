@@ -37,7 +37,8 @@ defmodule Weaver.MixProject do
       {:ex_aws_bedrock, "~> 2.5"},
       {:hackney, "~> 1.9"},
       {:exile, "~> 0.14"},
-      {:anthropix, "~> 0.6.2"}
+      # {:anthropix, "~> 0.6.2"}
+      {:anthropix, path: "vendor/anthropix"}
     ]
   end
 end

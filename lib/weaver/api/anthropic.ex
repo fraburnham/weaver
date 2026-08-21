@@ -17,22 +17,26 @@ defmodule Weaver.Api.Anthropic do
   def message_to_anthropic(msg = %{role: "assistant", tool_calls: tool_calls})
       when not is_nil(tool_calls) do
     anthropic_message =
-      with %{thinking: thinking, thinking_signature: signature} <- msg do
-        %{
-          role: "assistant",
-          content: [%{type: "thinking", thinking: thinking, signature: signature}]
-        }
-      else
-        _ -> %{role: "assistant", content: []}
+      case msg do
+        %{thinking: thinking, thinking_signature: signature} ->
+          %{
+            role: "assistant",
+            content: [%{type: "thinking", thinking: thinking, signature: signature}]
+          }
+
+        _ ->
+          %{role: "assistant", content: []}
       end
 
     anthropic_message =
-      with %{content: text} <- msg do
-        Map.put(anthropic_message, :content, [
-          %{type: "text", text: text} | anthropic_message[:content]
-        ])
-      else
-        _ -> anthropic_message
+      case msg do
+        %{content: text} ->
+          Map.put(anthropic_message, :content, [
+            %{type: "text", text: text} | anthropic_message[:content]
+          ])
+
+        _ ->
+          anthropic_message
       end
 
     tool_calls =
@@ -67,8 +71,7 @@ defmodule Weaver.Api.Anthropic do
   def message_to_anthropic(msg), do: msg
 
   def block_to_message(%{type: "text", text: text}, message) do
-    Map.put(message, :role, "assistant")
-    |> Map.put(:content, text)
+    Map.put(message, :content, text)
   end
 
   def block_to_message(%{type: "thinking", text: thinking, signature: signature}, message) do
@@ -90,7 +93,7 @@ defmodule Weaver.Api.Anthropic do
     Map.put(message, :tool_calls, [tool_call | current_tool_calls])
   end
 
-  def block_to_message(%{}, message), do: message
+  def block_to_message(%{}, message), do: IO.inspect(message)
 
   defp isolate_system_prompt(messages) do
     List.foldl(messages, %{system: [], messages: []}, fn
@@ -127,11 +130,12 @@ defmodule Weaver.Api.Anthropic do
             [Weaver.Api.Anthropic.message_to_anthropic(el) | acc]
           end),
         system: system,
-        tools: Enum.map(tools, &Weaver.Api.Anthropic.translate_tool/1)
+        tools: Enum.map(tools, &Weaver.Api.Anthropic.translate_tool/1),
+        thinking: %{type: "adaptive"}
       )
 
     %{
-      message: Enum.reduce(blocks, %{}, &Weaver.Api.Anthropic.block_to_message/2),
+      message: Enum.reduce(blocks, %{role: "assistant"}, &Weaver.Api.Anthropic.block_to_message/2),
       input_tokens: input_tokens,
       total_tokens: input_tokens + output_tokens
     }
