@@ -140,7 +140,8 @@ defmodule Weaver.Api.Anthropic do
       )
 
     %{
-      message: Enum.reduce(blocks, %{role: "assistant"}, &Weaver.Api.Anthropic.block_to_message/2),
+      message:
+        Enum.reduce(blocks, %{role: "assistant"}, &Weaver.Api.Anthropic.block_to_message/2),
       input_tokens: input_tokens,
       total_tokens: input_tokens + output_tokens
     }
