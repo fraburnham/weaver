@@ -33,5 +33,5 @@ defmodule Weaver.Mock do
 end
 
 config :weaver,
-  tools: [tool_modules: %{"mock" => Weaver.Mock}],
+  tools: [tool_modules: %{"mock" => Weaver.Mock}, async: true],
   personas: [name: "agent.nu-testing"]

@@ -29,6 +29,7 @@ defmodule Weaver.Application do
 
     children = [
       {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
+      {Task.Supervisor, name: Weaver.ToolTaskSupervisor},
       {Phoenix.PubSub, name: Weaver.PubSub},
       {History, struct!(History, Application.get_env(:weaver, :history))},
       {Tools, struct!(Tools, Application.get_env(:weaver, :tools))},
