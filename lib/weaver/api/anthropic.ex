@@ -121,7 +121,7 @@ defmodule Weaver.Api.Anthropic do
      }} =
       Anthropix.init(api_key,
         base_url: "https://bedrock-mantle.us-east-1.api.aws/anthropic/v1",
-        decode_json: [keys: :atoms],
+        decoders: [json: &Jason.decode(&1, keys: :atoms)],
         headers: [
           {"anthropic-version", "2023-06-01"},
           {"user-agent", "anthropix/v0.6.2-patch-2026-08-21"},
