@@ -17,7 +17,7 @@ defmodule Weaver.Api.Ollama do
       Req.post!(%URI{URI.parse(base_url) | path: "/api/chat"},
         json: Map.put(context, :stream, false),
         receive_timeout: :infinity,
-        decode_json: [keys: :atoms]
+        decoders: [json: &Jason.decode(&1, keys: :atoms)]
       ).body
       |> Map.take([:message, :prompt_eval_count, :eval_count])
 

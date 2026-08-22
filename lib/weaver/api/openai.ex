@@ -27,7 +27,7 @@ defmodule Weaver.Api.OpenAI do
         ],
         json: tool_call_encoder.(context) |> Map.put(:stream, false) |> Map.put(:store, false),
         receive_timeout: :infinity,
-        decode_json: [keys: :atoms]
+        decoders: [json: &Jason.decode(&1, keys: :atoms)]
       ).body
       |> tool_call_decoder.()
 
