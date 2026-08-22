@@ -73,11 +73,7 @@ defmodule Weaver.Tools do
           call_tool(config, tool_call)
         end)
       else
-        # TODO: need to protect this process from the task failing?
-        Task.async(fn ->
-          call_tool(config, tool_call)
-        end)
-        |> Task.await()
+        call_tool(config, tool_call)
       end
     end)
 
