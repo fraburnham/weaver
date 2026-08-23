@@ -12,10 +12,15 @@ defmodule Utils do
   def personas_config do
     config = [{:base_dir, System.get_env("WEAVER_PERSONAS_BASE_DIR")}]
 
-    if System.get_env("WEAVER_PERSONA") do
-      [{:name, System.get_env("WEAVER_PERSONA")} | config]
-    else
-      config
+    cond do
+      Mix.env() == :dev ->
+        config
+
+      System.get_env("WEAVER_PERSONA", nil) ->
+        [{:name, System.get_env("WEAVER_PERSONA")} | config]
+
+      true ->
+        config
     end
   end
 end
