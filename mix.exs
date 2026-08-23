@@ -1,3 +1,10 @@
+defmodule Mix.Tasks.Compile.Term do
+  def run(_args) do
+    {result, _errcode} = System.cmd("make", [], stderr_to_stdout: true)
+    IO.binwrite(result)
+  end
+end
+
 defmodule Weaver.MixProject do
   use Mix.Project
 
@@ -7,7 +14,8 @@ defmodule Weaver.MixProject do
       version: "0.1.0",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      compilers: [:term] ++ Mix.compilers()
       # https://github.com/burrito-elixir/burrito <- this is probalby better for the release
     ]
   end
