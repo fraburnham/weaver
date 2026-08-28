@@ -20,16 +20,21 @@ defmodule Weaver.LLM do
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config = %LLM{model: _, api: api, system_prompt: _, tools_available: _}) do
-    # TODO: this should fail if the child fails to start
-    api.start_link()
-
+  def init(config = %LLM{model: _, api: _, system_prompt: _, tools_available: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
 
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
 
     {:ok, config}
+  end
+
+  @impl true
+  def handle_continue(:start_api, config = %LLM{api: api}) do
+    # TODO: this should fail if the child fails to start
+    api.start_link()
+
+    {:noreply, config}
   end
 
   #
