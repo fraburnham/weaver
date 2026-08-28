@@ -22,4 +22,74 @@ defmodule Weaver.HistoryTest do
   test "temp directory is created during setup", context do
     assert File.exists?(context[:base_dir])
   end
+
+  describe "Message Persistence" do
+    test "single message persistence", context do
+      # Initialize the history file by sending :clear command
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Publish a single message to the "messages" topic
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "test"})
+      Process.sleep(50)
+
+      # Get the JSONL file from base_dir
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 1
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+
+      # Read and verify the file contains the encoded JSON
+      content = File.read!(jsonl_file)
+      assert content =~ ~s|{"role":"user","content":"test"}|
+    end
+
+    test "batch message persistence", context do
+      # Initialize the history file by sending :clear command
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Publish a list of messages
+      messages = [
+        %{role: "user", content: "a"},
+        %{role: "assistant", content: "b"}
+      ]
+
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", messages)
+      Process.sleep(50)
+
+      # Get the JSONL file from base_dir
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 1
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+
+      # Read and verify the file contains both messages as separate lines
+      content = File.read!(jsonl_file)
+      assert content =~ ~s|{"role":"user","content":"a"}|
+      assert content =~ ~s|{"role":"assistant","content":"b"}|
+    end
+
+    test "filtering resume: true messages", context do
+      # Initialize the history file by sending :clear command
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Publish a message with resume: true
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{
+        role: "user",
+        content: "replaying",
+        resume: true
+      })
+
+      Process.sleep(50)
+
+      # Get the JSONL file from base_dir
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 1
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+
+      # Read and verify the file does NOT contain the message
+      content = File.read!(jsonl_file)
+      refute content =~ ~s|replaying|
+    end
+  end
 end
