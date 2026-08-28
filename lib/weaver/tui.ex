@@ -136,7 +136,7 @@ defmodule Weaver.TUI do
   #
 
   @impl true
-  def handle_info({:total_tokens, total_tokens}, state = %TUI{}) do
+  def handle_info(%{total_tokens: total_tokens}, state = %TUI{}) do
     {:noreply, %{state | total_tokens: total_tokens}}
   end
 
