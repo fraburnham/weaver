@@ -78,7 +78,21 @@ defmodule Weaver.Tools do
         }
       end)
 
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", tool_responses)
+    if Enum.all?(
+         tool_responses,
+         fn
+           %{content: {:terminal, _}} -> false
+           _ -> true
+         end
+       ) do
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", tool_responses)
+    else
+      Phoenix.PubSub.broadcast(
+        Weaver.PubSub,
+        "commands",
+        {:terminal_tool_call, tool_responses}
+      )
+    end
 
     {:noreply, config}
   end

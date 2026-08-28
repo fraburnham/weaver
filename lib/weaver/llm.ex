@@ -42,6 +42,13 @@ defmodule Weaver.LLM do
   #
 
   @impl true
+  def handle_info({:terminal_tool_call, _}, state) do
+    send(self(), :clear)
+
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info(:clear, state = %LLM{skip_init: true}), do: {:noreply, state}
 
   @impl true

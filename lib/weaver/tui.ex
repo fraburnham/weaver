@@ -36,6 +36,11 @@ defmodule Weaver.TUI do
   # "commands" handling
   #
 
+  # Terminal tools don't make sense to me when the TUI is in use
+  @impl true
+  def handle_info({:termminal_tool_call, _}, _),
+    do: raise("Terminal tool called while using TUI!")
+
   @impl true
   def handle_info(:resume_end, state) do
     prompt()

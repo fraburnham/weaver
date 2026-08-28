@@ -57,6 +57,10 @@ defmodule Weaver.History do
     {:noreply, state}
   end
 
+  # Terminal tool calls can be ignored by the history worker because they'll already be written as assistant messages
+  @impl true
+  def handle_info({:termminal_tool_call, _}, state), do: {:noreply, state}
+
   #
   # "messages" handlers
   #
