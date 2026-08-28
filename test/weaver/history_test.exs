@@ -92,4 +92,132 @@ defmodule Weaver.HistoryTest do
       refute content =~ ~s|replaying|
     end
   end
+  describe "Command Handling" do
+    test ":clear command creates a new file", context do
+      # Initialize first file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Send a message to first file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "first"})
+      Process.sleep(50)
+
+      # Get the first file
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 1
+      first_file = Path.join(context[:base_dir], List.first(files))
+
+      # Send :clear to create a new file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Send a message to second file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "second"})
+      Process.sleep(50)
+
+      # Verify two files exist now
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 2
+
+      # Verify the second (newer) file contains the new message
+      newest_file = Path.join(context[:base_dir], Enum.at(files, 1))
+      content = File.read!(newest_file)
+      assert content =~ ~s|{"role":"user","content":"second"}|
+      refute content =~ ~s|first|
+    end
+
+    test "arbitrary command logging", context do
+      # Initialize the history file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Send an arbitrary atom command
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :my_custom_command)
+      Process.sleep(50)
+
+      # Get the JSONL file
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 1
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+
+      # Verify the file contains the command logged
+      content = File.read!(jsonl_file)
+      assert content =~ ~s|{"command":"my_custom_command"}|
+    end
+
+    test "ignored commands are not written", context do
+      # Initialize the history file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Send a message to have something in the file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "test"})
+      Process.sleep(50)
+
+      # Read file before sending ignored command
+      files = File.ls!(context[:base_dir])
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+      before_content = File.read!(jsonl_file)
+
+      # Send ignored command (termminal_tool_call with typo as per implementation)
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", {:termminal_tool_call, %{tool: "test"}})
+      Process.sleep(50)
+
+      # Read file after sending ignored command
+      after_content = File.read!(jsonl_file)
+
+      # Verify nothing was added
+      assert before_content == after_content
+    end
+
+    test ":resume_end does not write to file", context do
+      # Initialize the history file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Send a message to have something in the file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "test"})
+      Process.sleep(50)
+
+      # Read file before sending :resume_end
+      files = File.ls!(context[:base_dir])
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+      before_content = File.read!(jsonl_file)
+
+      # Send :resume_end command
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :resume_end)
+      Process.sleep(50)
+
+      # Read file after sending :resume_end
+      after_content = File.read!(jsonl_file)
+
+      # Verify nothing was added
+      assert before_content == after_content
+    end
+
+    test "{:resume, _} does not write to file", context do
+      # Initialize the history file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Send a message to have something in the file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "test"})
+      Process.sleep(50)
+
+      # Read file before sending {:resume, _}
+      files = File.ls!(context[:base_dir])
+      jsonl_file = Path.join(context[:base_dir], List.first(files))
+      before_content = File.read!(jsonl_file)
+
+      # Send {:resume, _} command
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", {:resume, :some_atom})
+      Process.sleep(50)
+
+      # Read file after sending {:resume, _}
+      after_content = File.read!(jsonl_file)
+
+      # Verify nothing was added
+      assert before_content == after_content
+    end
+  end
 end
