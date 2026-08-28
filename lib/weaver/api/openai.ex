@@ -9,7 +9,7 @@ defmodule Weaver.Api.OpenAI do
   def chat(context) do
     # TODO: this can use a short term secret. should be generating it here, too
     # (but the UI one is 12h which is both short and long enough)
-    %{api_key: api_key, project: _project} =
+    %{api_key: api_key, project: project} =
       Application.get_env(:weaver, :openai) |> Enum.into(%{})
 
     tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
@@ -24,7 +24,7 @@ defmodule Weaver.Api.OpenAI do
       Req.post!(
         [
           url: "#{@base_uri}/v1/chat/completions",
-          headers: %{authorization: "Bearer #{api_key}"}
+          headers: %{"OpenAI-Project" => project, authorization: "Bearer #{api_key}"}
         ],
         json: tool_call_encoder.(context) |> Map.put(:stream, false) |> Map.put(:store, false),
         receive_timeout: :infinity,
