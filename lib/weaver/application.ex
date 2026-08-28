@@ -27,22 +27,32 @@ defmodule Weaver.Application do
     tools_available = Personas.tools_available(personas)
     context_window = Personas.context_window(personas)
 
-    children = [
-      {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
-      {Phoenix.PubSub, name: Weaver.PubSub},
-      {History, struct!(History, Application.get_env(:weaver, :history))},
-      {Tools, struct!(Tools, Application.get_env(:weaver, :tools))},
-      {LLM,
-       struct!(LLM, [
-         {:model, model},
-         {:api, api},
-         {:system_prompt, system_prompt},
-         {:tools_available, tools_available},
-         {:context_window, context_window}
-         | Application.get_env(:weaver, :llm, [])
-       ])},
-      {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
-    ]
+    children =
+      case Mix.env() do
+        :test ->
+          [
+            {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
+            {Phoenix.PubSub, name: Weaver.PubSub}
+          ]
+
+        _ ->
+          [
+            {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
+            {Phoenix.PubSub, name: Weaver.PubSub},
+            {History, struct!(History, Application.get_env(:weaver, :history))},
+            {Tools, struct!(Tools, Application.get_env(:weaver, :tools))},
+            {LLM,
+             struct!(LLM, [
+               {:model, model},
+               {:api, api},
+               {:system_prompt, system_prompt},
+               {:tools_available, tools_available},
+               {:context_window, context_window}
+               | Application.get_env(:weaver, :llm, [])
+             ])},
+            {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
+          ]
+      end
 
     opts = [strategy: :one_for_one, name: Weaver.Supervisor]
     Supervisor.start_link(children, opts)
