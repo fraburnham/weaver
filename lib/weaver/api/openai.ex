@@ -12,7 +12,7 @@ defmodule Weaver.Api.OpenAI do
     %{api_key: api_key, project: _project} =
       Application.get_env(:weaver, :openai) |> Enum.into(%{})
 
-    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!/1)
+    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
     tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
 
     # TODO: track prompt_cache_key!

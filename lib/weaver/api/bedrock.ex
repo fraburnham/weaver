@@ -213,7 +213,7 @@ defmodule Weaver.Api.BedrockMock do
 
   def chat(req = %{messages: messages}) do
     tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
-    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!/1)
+    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
 
     tool_call_encoder.(req)
 
