@@ -1,6 +1,5 @@
 defmodule Weaver.HistoryTest do
   use ExUnit.Case
-  import ExUnit.Setup
 
   setup do
     # Create a unique temporary directory for this test session
@@ -10,7 +9,7 @@ defmodule Weaver.HistoryTest do
     # Start the History GenServer with the temp directory
     # Note: Using a unique name or ensuring singleton behavior is handled by the GenServer
     # For now, we use the default name as defined in the module
-    {:ok, _pid} = Weaver.History.start_link(base_dir: base_dir)
+    {:ok, _pid} = Weaver.History.start_link(struct!(Weaver.History, %{base_dir: base_dir}))
 
     # Register the cleanup function to run when the test or process exits
     on_exit(fn ->
@@ -20,7 +19,7 @@ defmodule Weaver.HistoryTest do
     {:ok, base_dir: base_dir}
   end
 
-  test "temp directory is created during setup" do
-    assert File.exist?(base_dir)
+  test "temp directory is created during setup", context do
+    assert File.exists?(context[:base_dir])
   end
 end
