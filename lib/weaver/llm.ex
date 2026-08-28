@@ -4,7 +4,7 @@ defmodule Weaver.LLM do
   and message history, calling the API for each LLM turn, and broadcasting responses to all subscribers.
   """
 
-  use GenServer
+  use GenServer, restart: :transient
   alias Weaver.LLM
   alias Weaver.Tools
 
