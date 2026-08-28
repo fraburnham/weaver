@@ -2,14 +2,15 @@ defmodule Weaver.Api.OpenAI do
   @behaviour Weaver.Api
 
   # TODO: region from config
-  @base_uri URI.parse("https://bedrock-mantle.us-east-2.api.aws/")
+  @base_uri "https://bedrock-mantle.us-east-1.api.aws/openai"
 
   def start_link(), do: nil
 
   def chat(context) do
     # TODO: this can use a short term secret. should be generating it here, too
     # (but the UI one is 12h which is both short and long enough)
-    api_key = Application.get_env(:weaver, :openai)
+    %{api_key: api_key, project: _project} =
+      Application.get_env(:weaver, :openai) |> Enum.into(%{})
 
     tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!/1)
     tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
@@ -22,7 +23,7 @@ defmodule Weaver.Api.OpenAI do
     } =
       Req.post!(
         [
-          url: %URI{@base_uri | path: "/v1/chat/completions"},
+          url: "#{@base_uri}/v1/chat/completions",
           headers: %{authorization: "Bearer #{api_key}"}
         ],
         json: tool_call_encoder.(context) |> Map.put(:stream, false) |> Map.put(:store, false),
