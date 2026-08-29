@@ -12,12 +12,16 @@ defmodule Weaver.Api.Ollama do
   def chat(context) do
     %{base_url: base_url} = struct!(Weaver.Api.Ollama, Application.get_env(:weaver, :ollama))
 
+    req_options = Application.get_env(:weaver, :req_options, [])
+
     # TODO: use response streaming
     %{message: message, prompt_eval_count: input_tokens, eval_count: output_tokens} =
       Req.post!(%URI{URI.parse(base_url) | path: "/api/chat"},
-        json: Map.put(context, :stream, false),
-        receive_timeout: :infinity,
-        decoders: [json: &Jason.decode(&1, keys: :atoms)]
+        Keyword.merge([
+          json: Map.put(context, :stream, false),
+          receive_timeout: :infinity,
+          decoders: [json: &Jason.decode(&1, keys: :atoms)]
+        ], req_options)
       ).body
       |> Map.take([:message, :prompt_eval_count, :eval_count])
 
