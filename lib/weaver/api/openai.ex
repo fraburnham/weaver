@@ -15,6 +15,13 @@ defmodule Weaver.Api.OpenAI do
     tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
     tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
 
+    req_options =
+      [
+        url: "#{@base_uri}/v1/chat/completions",
+        headers: %{"OpenAI-Project" => project, authorization: "Bearer #{api_key}"}
+      ]
+      |> Keyword.merge(Application.get_env(:weaver, :openai_req_options, []))
+
     # TODO: track prompt_cache_key!
     # TODO: support reasoning_effort
     %{
@@ -22,10 +29,7 @@ defmodule Weaver.Api.OpenAI do
       usage: %{prompt_tokens: input_tokens, total_tokens: total_tokens}
     } =
       Req.post!(
-        [
-          url: "#{@base_uri}/v1/chat/completions",
-          headers: %{"OpenAI-Project" => project, authorization: "Bearer #{api_key}"}
-        ],
+        req_options,
         json: tool_call_encoder.(context) |> Map.put(:stream, false) |> Map.put(:store, false),
         receive_timeout: :infinity,
         decoders: [json: &Jason.decode(&1, keys: :atoms)]
