@@ -63,5 +63,39 @@ defmodule Weaver.Api.OpenAITest do
       assert result.input_tokens == 15
       assert result.total_tokens == 25
     end
+    test "request payload validation" do
+      Req.Test.stub(OpenAIMock, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/openai/v1/chat/completions"
+
+        raw_body = Req.Test.raw_body(conn)
+        body = Jason.decode!(raw_body, keys: :atoms)
+
+        # Assert the payload includes required fields
+        assert body.stream == false
+        assert body.store == false
+
+        # Assert the messages are correctly encoded
+        assert Enum.member?(body.messages, %{role: "user", content: "What is the meaning of life?"})
+        assert Enum.member?(body.messages, %{role: "system", content: "You are a helpful assistant."})
+
+        Req.Test.json(conn, %{
+          "choices" => [%{"message" => %{"role" => "assistant", "content" => "42"}}],
+          "usage" => %{"prompt_tokens" => 5, "total_tokens" => 10}
+        })
+      end)
+
+      context = %{
+        messages: [
+          %{role: "system", content: "You are a helpful assistant."},
+          %{role: "user", content: "What is the meaning of life?"}
+        ]
+      }
+      result = Weaver.Api.OpenAI.chat(context)
+
+      assert result.message.content == "42"
+      assert result.input_tokens == 5
+      assert result.total_tokens == 10
+    end
   end
 end
