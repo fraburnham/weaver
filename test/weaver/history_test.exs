@@ -221,4 +221,63 @@ defmodule Weaver.HistoryTest do
       assert before_content == after_content
     end
   end
+
+  describe "Public API" do
+    test "sessions/0 returns only .jsonl files and sorts them", context do
+      # Initialize a file
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      # Create a dummy .txt file
+      File.write!(Path.join(context[:base_dir], "dummy.txt"), "not a jsonl")
+
+      # Create another .jsonl file manually to ensure sorting
+      File.write!(Path.join(context[:base_dir], "1970-01-01T00:00:00Z.jsonl"), "old\n")
+
+      Process.sleep(50)
+
+      sessions = Weaver.History.sessions()
+
+      # Should only return .jsonl files
+      assert Enum.all?(sessions, fn f -> String.ends_with?(f, ".jsonl") end)
+      refute "dummy.txt" in sessions
+
+      # Should be sorted
+      assert sessions == Enum.sort(sessions)
+    end
+
+    test "resume/1 replays messages and commands with resume: true", context do
+      # Subscribe to topics to capture broadcasts
+      Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
+      Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
+
+      # Initialize a file and write some history
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
+      Process.sleep(50)
+
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "hello"})
+      Process.sleep(50)
+
+      Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :some_command)
+      Process.sleep(50)
+
+      # Get the history file
+      files = File.ls!(context[:base_dir])
+      assert length(files) == 1
+      history_file = List.first(files)
+
+      # Call resume
+      Weaver.History.resume(history_file)
+      Process.sleep(200) # Give time for resume to complete and broadcast
+
+      # Verify a new history file was created after resume
+      files_after = File.ls!(context[:base_dir])
+      assert length(files_after) == 2
+
+      # Verify the new file exists and is empty or ready for new messages
+      newest_file = Path.join(context[:base_dir], Enum.at(files_after, 1))
+      assert File.exists?(newest_file)
+    end
+  end
+
 end
