@@ -92,6 +92,7 @@ defmodule Weaver.HistoryTest do
       refute content =~ ~s|replaying|
     end
   end
+
   describe "Command Handling" do
     test ":clear command creates a new file", context do
       # Initialize first file
@@ -116,7 +117,7 @@ defmodule Weaver.HistoryTest do
       Process.sleep(50)
 
       # Verify two files exist now
-      files = File.ls!(context[:base_dir])
+      files = File.ls!(context[:base_dir]) |> Enum.sort()
       assert length(files) == 2
 
       # Verify the second (newer) file contains the new message
