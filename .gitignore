@@ -28,3 +28,5 @@ weaver-*.tar
 *~
 
 .weaver/
+
+\#*#
