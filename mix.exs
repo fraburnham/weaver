@@ -37,7 +37,8 @@ defmodule Weaver.MixProject do
       {:ex_aws_bedrock, "~> 2.5"},
       {:hackney, "~> 1.9"},
       {:exile, "~> 0.14"},
-      {:anthropix, github: "fraburnham/anthropix", branch: "update-thinking-schema"}
+      {:anthropix, github: "fraburnham/anthropix", branch: "update-thinking-schema"},
+      {:plug, "~> 1.0", only: [:dev, :test]}
     ]
   end
 end
