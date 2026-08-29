@@ -83,5 +83,23 @@ defmodule Weaver.Api.OllamaTest do
       assert result.input_tokens == 10
       assert result.total_tokens == 30
     end
+    test "invalid response format raises MatchError" do
+      Req.Test.stub(:ollama_api, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/api/chat"
+
+        # Return a response missing required keys (message, prompt_eval_count, eval_count)
+        Req.Test.json(conn, %{
+          "status" => "ok",
+          "model" => "llama3"
+        })
+      end)
+
+      context = %{messages: [%{role: "user", content: "Hello!"}]}
+
+      assert_raise MatchError, fn ->
+        Weaver.Api.Ollama.chat(context)
+      end
+    end
   end
 end
