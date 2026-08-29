@@ -25,5 +25,43 @@ defmodule Weaver.Api.OpenAITest do
       assert result.input_tokens == 10
       assert result.total_tokens == 20
     end
+    test "tool calls response" do
+      Req.Test.stub(OpenAIMock, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/openai/v1/chat/completions"
+
+        Req.Test.json(conn, %{
+          "choices" => [
+            %{
+              "message" => %{
+                "role" => "assistant",
+                "content" => nil,
+                "tool_calls" => [
+                  %{
+                    "id" => "call_123",
+                    "type" => "function",
+                    "function" => %{
+                      "name" => "get_weather",
+                      "arguments" => "{\"location\": \"Boston\"}"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "usage" => %{"prompt_tokens" => 15, "total_tokens" => 25}
+        })
+      end)
+
+      context = %{messages: [%{role: "user", content: "What's the weather in Boston?"}]}
+      result = Weaver.Api.OpenAI.chat(context)
+
+      assert result.message.role == "assistant"
+      assert result.message.tool_calls != nil
+      tool_call = Enum.at(result.message.tool_calls, 0)
+      assert tool_call.function.name == "get_weather"
+      assert result.input_tokens == 15
+      assert result.total_tokens == 25
+    end
   end
 end
