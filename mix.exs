@@ -38,6 +38,7 @@ defmodule Weaver.MixProject do
       {:hackney, "~> 1.9"},
       {:exile, "~> 0.14"},
       {:anthropix, github: "fraburnham/anthropix", branch: "update-thinking-schema"},
+      {:mox, "~> 1.0", only: :test},
       {:plug, "~> 1.0", only: [:dev, :test]}
     ]
   end
