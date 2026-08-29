@@ -25,6 +25,7 @@ defmodule Weaver.Api.OpenAITest do
       assert result.input_tokens == 10
       assert result.total_tokens == 20
     end
+
     test "tool calls response" do
       Req.Test.stub(OpenAIMock, fn conn ->
         assert conn.method == "POST"
@@ -63,6 +64,7 @@ defmodule Weaver.Api.OpenAITest do
       assert result.input_tokens == 15
       assert result.total_tokens == 25
     end
+
     test "request payload validation" do
       Req.Test.stub(OpenAIMock, fn conn ->
         assert conn.method == "POST"
@@ -96,6 +98,25 @@ defmodule Weaver.Api.OpenAITest do
       assert result.message.content == "42"
       assert result.input_tokens == 5
       assert result.total_tokens == 10
+    end
+
+    test "malformed / unexpected response raises MatchError" do
+      Req.Test.stub(OpenAIMock, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/openai/v1/chat/completions"
+
+        # Return a response missing required keys (choices, usage)
+        Req.Test.json(conn, %{
+          "status" => "ok",
+          "model" => "gpt-4"
+        })
+      end)
+
+      context = %{messages: [%{role: "user", content: "Hello!"}]}
+
+      assert_raise MatchError, fn ->
+        Weaver.Api.OpenAI.chat(context)
+      end
     end
   end
 end
