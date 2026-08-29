@@ -65,5 +65,23 @@ defmodule Weaver.Api.OllamaTest do
       assert result.input_tokens == 50
       assert result.total_tokens == 80
     end
+    test "token accounting verification" do
+      Req.Test.stub(:ollama_api, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/api/chat"
+
+        Req.Test.json(conn, %{
+          "message" => %{"role" => "assistant", "content" => "Test response"},
+          "prompt_eval_count" => 10,
+          "eval_count" => 20
+        })
+      end)
+
+      context = %{messages: [%{role: "user", content: "Test prompt"}]}
+      result = Weaver.Api.Ollama.chat(context)
+
+      assert result.input_tokens == 10
+      assert result.total_tokens == 30
+    end
   end
 end
