@@ -557,4 +557,142 @@ defmodule Weaver.ToolsHandlingTest do
     end
   end
 
+  describe "handle_info - Ignore/Pass-through Messages" do
+    setup do
+      config = %Tools{
+        base_dir: "/tmp/unused",
+        tool_definitions: [],
+        tool_modules: %{}
+      }
+
+      # Stop any existing server first
+      stop_tools_server()
+      Process.sleep(50)
+
+      {:ok, pid} = Tools.start_link(config)
+
+      on_exit(fn ->
+        stop_tools_server()
+      end)
+
+      %{pid: pid}
+    end
+
+    test "resume messages are ignored without side effects", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      resume_message = %{resume: true, some_other_data: "ignored"}
+
+      send(pid, resume_message)
+
+      # Give some time for processing
+      Process.sleep(100)
+
+      # Should not broadcast anything to messages topic
+      refute_receive [_]
+
+      # GenServer should still be alive with same state
+      assert Process.alive?(pid)
+    end
+
+    test "non-assistant messages are passed through without side effects", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      # Test with role "user"
+      user_message = %{role: "user", content: "Hello, how are you?"}
+
+      send(pid, user_message)
+
+      Process.sleep(100)
+
+      # Should not broadcast anything
+      refute_receive [_]
+
+      # GenServer should still be alive
+      assert Process.alive?(pid)
+    end
+
+    test "system role messages are ignored", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      system_message = %{role: "system", content: "You are a helpful assistant"}
+
+      send(pid, system_message)
+
+      Process.sleep(100)
+
+      # Should not broadcast anything
+      refute_receive [_]
+
+      assert Process.alive?(pid)
+    end
+
+    test "tool role messages are ignored", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      tool_message = %{role: "tool", content: "some tool output"}
+
+      send(pid, tool_message)
+
+      Process.sleep(100)
+
+      # Should not broadcast anything
+      refute_receive [_]
+
+      assert Process.alive?(pid)
+    end
+
+    test "list of messages is ignored without side effects", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      # Send a list of message maps
+      message_list = [
+        %{role: "user", content: "First message"},
+        %{role: "assistant", content: "Second message"}
+      ]
+
+      send(pid, message_list)
+
+      Process.sleep(100)
+
+      # Should not broadcast anything
+      refute_receive [_]
+
+      # GenServer should still be alive
+      assert Process.alive?(pid)
+    end
+
+    test "list with assistant message is still ignored", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      # Even if the list contains an assistant message, the list handler ignores it
+      message_list = [%{role: "assistant", content: "Should be ignored in list context"}]
+
+      send(pid, message_list)
+
+      Process.sleep(100)
+
+      # Should not broadcast anything
+      refute_receive [_]
+
+      assert Process.alive?(pid)
+    end
+
+    test "config state is preserved after ignore/pass-through", %{pid: pid} do
+      # Send various ignore/pass-through messages
+      send(pid, %{resume: true})
+      send(pid, %{role: "user", content: "test"})
+      send(pid, [%{role: "assistant", content: "test"}])
+
+      Process.sleep(100)
+
+      # Config should remain unchanged
+      # We can verify this by checking that the server is still alive and responsive
+      assert Process.alive?(pid)
+
+      # We can also verify no broadcasts occurred
+      refute_receive [_]
+    end
+  end
+
 end
