@@ -169,4 +169,41 @@ defmodule Weaver.PersonasTest do
       end
     end
   end
+
+  describe "context_window/1" do
+    test "returns the integer value specified in context_window", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": [], "context_window": 8192}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert Personas.context_window(persona) == 8192
+    end
+
+    test "returns nil when context_window key is missing", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": []}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert Personas.context_window(persona) == nil
+    end
+
+    test "raises Jason.DecodeError when JSON is malformed", context do
+      persona_path = context[:persona_dir]
+      File.write!(Path.join(persona_path, "persona.json"), "{invalid json")
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise Jason.DecodeError, fn ->
+        Personas.context_window(persona)
+      end
+    end
+
+    test "raises File.Error when persona.json is missing", context do
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise File.Error, fn ->
+        Personas.context_window(persona)
+      end
+    end
+  end
 end
