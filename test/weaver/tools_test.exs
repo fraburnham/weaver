@@ -22,7 +22,7 @@ defmodule Weaver.ToolsInitTest do
       initial_modules = %{"mock-tool" => MockModule}
       config = %Tools{
         base_dir: "/test/dir",
-        tool_definitions: [],
+        tool_definitions: nil,
         tool_modules: initial_modules
       }
 
@@ -160,6 +160,251 @@ defmodule Weaver.ToolsRetrievalTest do
       assert module_def != nil
       assert stdio_def[:function][:description] == "A test STDIO tool"
       assert module_def[:function][:description] == "A mixed test tool"
+    end
+  end
+end
+
+defmodule Weaver.ToolsHandlingTest do
+  use ExUnit.Case, async: false
+
+  alias Weaver.Tools
+  import Phoenix.PubSub, only: [subscribe: 2]
+
+  # Helper to safely stop the GenServer
+  defp stop_tools_server() do
+    try do
+      GenServer.stop(Weaver.Tools)
+    catch
+      :exit, _ -> :ok
+    end
+  end
+
+  describe "handle_info - Module-based tool calls" do
+    setup do
+      defmodule HandlingTestMockModule do
+        @behaviour Weaver.Tools.Tool
+
+        @impl true
+        def definition() do
+          %{
+            type: "function",
+            function: %{
+              name: "handling-mock-tool",
+              description: "A handling test module tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          }
+        end
+
+        @impl true
+        def run(_tool_call) do
+          "handling mock response"
+        end
+      end
+
+      config = %Tools{
+        base_dir: "/tmp/unused",
+        tool_definitions: [
+          %{
+            type: "function",
+            function: %{
+              name: "handling-mock-tool",
+              description: "A handling test module tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          }
+        ],
+        tool_modules: %{"handling-mock-tool" => HandlingTestMockModule}
+      }
+
+      # Stop any existing server first
+      stop_tools_server()
+      Process.sleep(50)
+
+      {:ok, pid} = Tools.start_link(config)
+
+      on_exit(fn ->
+        stop_tools_server()
+      end)
+
+      %{pid: pid}
+    end
+
+    test "formats response correctly for module-based tools and broadcasts to messages", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      tool_call = %{
+        id: "call_123",
+        type: "function",
+        function: %{
+          name: "handling-mock-tool",
+          arguments: "{}"
+        }
+      }
+
+      message = %{
+        role: "assistant",
+        tool_calls: [tool_call]
+      }
+
+      send(pid, message)
+
+      # Wait a bit for the message to be broadcast
+      Process.sleep(200)
+
+      receive do
+        [response] ->
+          assert response[:id] == "call_123"
+          assert response[:role] == "tool"
+          assert response[:content] == "handling mock response"
+      after
+        2000 ->
+          flunk("Timed out waiting for broadcast message")
+      end
+    end
+  end
+
+  describe "handle_info - STDIO tool calls" do
+    setup do
+      tmp_dir = System.tmp_dir!()
+      tool_dir = Path.join([tmp_dir, "test_stdio_handling_#{:erlang.unique_integer([:positive])}"])
+      stdio_tool_dir = Path.join(tool_dir, "test-stdio-handler")
+      File.mkdir_p!(stdio_tool_dir)
+
+      definition = %{
+        type: "function",
+        function: %{
+          name: "test-stdio-handler",
+          description: "A test STDIO tool for handling",
+          parameters: %{type: "object", properties: %{}}
+        }
+      }
+
+      File.write!(Path.join(stdio_tool_dir, "definition.json"), Jason.encode!(definition))
+
+      # Create a simple script that echoes back
+      script = """
+      #!/bin/sh
+      read -r input
+      echo "{\"result\": \"stdio output\"}"
+      """
+
+      File.write!(Path.join(stdio_tool_dir, "run"), script)
+      File.chmod!(Path.join(stdio_tool_dir, "run"), 0o755)
+
+      config = %Tools{
+        base_dir: tool_dir,
+        tool_definitions: [definition],
+        tool_modules: %{}
+      }
+
+      # Stop any existing server first
+      stop_tools_server()
+      Process.sleep(50)
+
+      {:ok, pid} = Tools.start_link(config)
+
+      on_exit(fn ->
+        stop_tools_server()
+        File.rm_rf!(tool_dir)
+      end)
+
+      %{pid: pid, tool_dir: tool_dir}
+    end
+
+    test "calls STDIO tool and broadcasts response to messages", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      tool_call = %{
+        id: "call_stdio_1",
+        type: "function",
+        function: %{
+          name: "test-stdio-handler",
+          arguments: "{}"
+        }
+      }
+
+      message = %{
+        role: "assistant",
+        tool_calls: [tool_call]
+      }
+
+      send(pid, message)
+
+      Process.sleep(500)
+
+      receive do
+        [response] ->
+          assert response[:id] == "call_stdio_1"
+          assert response[:role] == "tool"
+          assert response[:content] =~ "result"
+      after
+        2000 ->
+          flunk("Timed out waiting for STDIO tool response")
+      end
+    end
+  end
+
+  describe "handle_info - Invalid tool calls" do
+    setup do
+      config = %Tools{
+        base_dir: "/tmp/unused",
+        tool_definitions: [
+          %{
+            type: "function",
+            function: %{
+              name: "existing-tool",
+              description: "An existing tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          }
+        ],
+        tool_modules: %{}
+      }
+
+      # Stop any existing server first
+      stop_tools_server()
+      Process.sleep(50)
+
+      {:ok, pid} = Tools.start_link(config)
+
+      on_exit(fn ->
+        stop_tools_server()
+      end)
+
+      %{pid: pid}
+    end
+
+    test "returns error message for invalid tool names", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      tool_call = %{
+        id: "call_invalid",
+        type: "function",
+        function: %{
+          name: "nonexistent-tool",
+          arguments: "{}"
+        }
+      }
+
+      message = %{
+        role: "assistant",
+        tool_calls: [tool_call]
+      }
+
+      send(pid, message)
+
+      Process.sleep(200)
+
+      receive do
+        [response] ->
+          assert response[:id] == "call_invalid"
+          assert response[:role] == "tool"
+          assert response[:content] == "Invalid tool call. No tool named `nonexistent-tool`."
+      after
+        2000 ->
+          flunk("Timed out waiting for invalid tool response")
+      end
     end
   end
 end
