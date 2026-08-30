@@ -12,16 +12,22 @@ defmodule Weaver.History do
 
   alias Weaver.History
 
-  defstruct base_dir: nil
+  defstruct base_dir: nil,
+            pubsub: nil
 
-  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
+  def start_link(options) do
+    config =
+      struct!(History, [{:pubsub, Application.get_env(:weaver, :pubsub)} | options[:config]])
+
+    GenServer.start_link(__MODULE__, config, name: options[:name] || __MODULE__)
+  end
 
   @impl true
-  def init(%History{base_dir: base_dir}) do
-    Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
-    Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
+  def init(config = %History{base_dir: _, pubsub: pubsub}) do
+    Phoenix.PubSub.subscribe(pubsub, "messages")
+    Phoenix.PubSub.subscribe(pubsub, "commands")
 
-    {:ok, {nil, base_dir}}
+    {:ok, {nil, config}}
   end
 
   @impl true
@@ -44,9 +50,9 @@ defmodule Weaver.History do
   end
 
   @impl true
-  def handle_info(:clear, {_, base_dir}) do
+  def handle_info(:clear, {_, config = %History{base_dir: base_dir}}) do
     {:ok, file_descriptor} = init_history_file(base_dir)
-    {:noreply, {file_descriptor, base_dir}}
+    {:noreply, {file_descriptor, config}}
   end
 
   @impl true
@@ -87,7 +93,7 @@ defmodule Weaver.History do
   end
 
   @impl true
-  def handle_call(:sessions, _, state = {_, base_dir}) do
+  def handle_call(:sessions, _, state = {_, %History{base_dir: base_dir}}) do
     {:ok, files} = File.ls(base_dir)
 
     {:reply, files, state}
@@ -98,13 +104,17 @@ defmodule Weaver.History do
   #
 
   @impl true
-  def handle_cast({:start_resume, history_file}, {_, base_dir}) do
+  def handle_cast(
+        {:start_resume, history_file},
+        {_, %History{base_dir: base_dir, pubsub: pubsub}}
+      ) do
     [base_dir, history_file]
     |> Path.join()
     |> Path.expand()
     |> File.stream!(:line, encoding: :utf8)
     |> Enum.each(fn line ->
       resume_line(
+        pubsub,
         Jason.decode!(line, keys: :atoms)
         |> Map.put(:resume, true)
       )
@@ -125,12 +135,12 @@ defmodule Weaver.History do
     IO.puts(file_descriptor, Jason.encode_to_iodata!(msg))
   end
 
-  defp resume_line(msg = %{role: _}) do
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", msg)
+  defp resume_line(pubsub, msg = %{role: _}) do
+    Phoenix.PubSub.broadcast(pubsub, "messages", msg)
   end
 
-  defp resume_line(%{command: cmd}) do
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", {:resume, String.to_atom(cmd)})
+  defp resume_line(pubsub, %{command: cmd}) do
+    Phoenix.PubSub.broadcast(pubsub, "commands", {:resume, String.to_atom(cmd)})
   end
 
   defp init_history_file(base_dir) do
@@ -148,11 +158,19 @@ defmodule Weaver.History do
   #
 
   def resume(history_file) do
-    GenServer.cast(__MODULE__, {:start_resume, history_file})
+    resume(history_file, __MODULE__)
+  end
+
+  def resume(history_file, pid) do
+    GenServer.cast(pid, {:start_resume, history_file})
   end
 
   def sessions do
-    GenServer.call(__MODULE__, :sessions)
+    sessions(__MODULE__)
+  end
+
+  def sessions(pid) do
+    GenServer.call(pid, :sessions)
     |> Enum.filter(fn el -> String.ends_with?(el, ".jsonl") end)
     |> Enum.sort()
   end

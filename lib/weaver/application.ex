@@ -39,7 +39,7 @@ defmodule Weaver.Application do
           [
             {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
             {Phoenix.PubSub, name: Weaver.PubSub},
-            {History, struct!(History, Application.get_env(:weaver, :history))},
+            {History, config: Application.get_env(:weaver, :history)},
             {Tools, struct!(Tools, Application.get_env(:weaver, :tools))},
             {LLM,
              struct!(LLM, [
