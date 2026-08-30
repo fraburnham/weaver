@@ -56,4 +56,52 @@ defmodule Weaver.PersonasTest do
       end
     end
   end
+
+  describe "tools_available/1" do
+    test "returns the list of tools from persona.json", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": ["code_interpreter", "dalle"]}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert Personas.tools_available(persona) == ["code_interpreter", "dalle"]
+    end
+
+    test "raises KeyError when tools key is missing", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "api": "OpenAI"}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise KeyError, fn ->
+        Personas.tools_available(persona)
+      end
+    end
+
+    test "raises Jason.DecodeError when JSON is malformed", context do
+      persona_path = context[:persona_dir]
+      File.write!(Path.join(persona_path, "persona.json"), "{invalid json")
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise Jason.DecodeError, fn ->
+        Personas.tools_available(persona)
+      end
+    end
+
+    test "raises File.Error when persona.json is missing", context do
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise File.Error, fn ->
+        Personas.tools_available(persona)
+      end
+    end
+
+    test "returns empty list when tools is empty", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": []}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert Personas.tools_available(persona) == []
+    end
+  end
 end
