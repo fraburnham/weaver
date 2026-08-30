@@ -104,4 +104,69 @@ defmodule Weaver.PersonasTest do
       assert Personas.tools_available(persona) == []
     end
   end
+
+  describe "model/1" do
+    test "returns a tuple {model_string, Module} for valid config", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": []}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      {model, api_module} = Personas.model(persona)
+
+      assert model == "gpt-4"
+      assert api_module == Module.concat(["OpenAI"])
+    end
+
+    test "raises MatchError when model key is missing", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"api": "OpenAI", "tools": []}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise MatchError, fn ->
+        Personas.model(persona)
+      end
+    end
+
+    test "raises MatchError when api key is missing", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "gpt-4", "tools": []}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise MatchError, fn ->
+        Personas.model(persona)
+      end
+    end
+
+    test "constructs correct module from api string", context do
+      persona_path = context[:persona_dir]
+      json = ~s|{"model": "llama3", "api": "Ollama", "tools": []}|
+      File.write!(Path.join(persona_path, "persona.json"), json)
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      {model, api_module} = Personas.model(persona)
+
+      assert model == "llama3"
+      assert api_module == Module.concat(["Ollama"])
+    end
+
+    test "raises File.Error when persona.json is missing", context do
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise File.Error, fn ->
+        Personas.model(persona)
+      end
+    end
+
+    test "raises Jason.DecodeError when JSON is malformed", context do
+      persona_path = context[:persona_dir]
+      File.write!(Path.join(persona_path, "persona.json"), "{invalid json")
+
+      persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+      assert_raise Jason.DecodeError, fn ->
+        Personas.model(persona)
+      end
+    end
+  end
 end
