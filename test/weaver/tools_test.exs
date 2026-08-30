@@ -407,4 +407,154 @@ defmodule Weaver.ToolsHandlingTest do
       end
     end
   end
+
+  describe "handle_info - Broadcast scenarios" do
+    setup do
+      defmodule BroadcastTerminalMockModule do
+        @behaviour Weaver.Tools.Tool
+
+        @impl true
+        def definition() do
+          %{
+            type: "function",
+            function: %{
+              name: "broadcast-terminal-tool",
+              description: "A terminal broadcast test tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          }
+        end
+
+        @impl true
+        def run(_tool_call) do
+          {:terminal, "terminal data"}
+        end
+      end
+
+      defmodule BroadcastNormalMockModule do
+        @behaviour Weaver.Tools.Tool
+
+        @impl true
+        def definition() do
+          %{
+            type: "function",
+            function: %{
+              name: "broadcast-normal-tool",
+              description: "A normal broadcast test tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          }
+        end
+
+        @impl true
+        def run(_tool_call) do
+          "normal response"
+        end
+      end
+
+      config = %Tools{
+        base_dir: "/tmp/unused",
+        tool_definitions: [
+          %{
+            type: "function",
+            function: %{
+              name: "broadcast-terminal-tool",
+              description: "A terminal broadcast test tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          },
+          %{
+            type: "function",
+            function: %{
+              name: "broadcast-normal-tool",
+              description: "A normal broadcast test tool",
+              parameters: %{type: "object", properties: %{}}
+            }
+          }
+        ],
+        tool_modules: %{
+          "broadcast-terminal-tool" => BroadcastTerminalMockModule,
+          "broadcast-normal-tool" => BroadcastNormalMockModule
+        }
+      }
+
+      # Stop any existing server first
+      stop_tools_server()
+      Process.sleep(50)
+
+      {:ok, pid} = Tools.start_link(config)
+
+      on_exit(fn ->
+        stop_tools_server()
+      end)
+
+      %{pid: pid}
+    end
+
+    test "terminal tool calls broadcast to commands topic", %{pid: pid} do
+      subscribe(Weaver.PubSub, "commands")
+
+      tool_call = %{
+        id: "call_terminal_1",
+        type: "function",
+        function: %{
+          name: "broadcast-terminal-tool",
+          arguments: "{}"
+        }
+      }
+
+      message = %{
+        role: "assistant",
+        tool_calls: [tool_call]
+      }
+
+      send(pid, message)
+
+      Process.sleep(200)
+
+      receive do
+        {:terminal_tool_call, responses} ->
+          assert length(responses) == 1
+          assert hd(responses)[:id] == "call_terminal_1"
+          assert hd(responses)[:role] == "tool"
+          assert hd(responses)[:content] == {:terminal, "terminal data"}
+      after
+        2000 ->
+          flunk("Timed out waiting for terminal tool broadcast to commands topic")
+      end
+    end
+
+    test "non-terminal tool calls broadcast to messages topic", %{pid: pid} do
+      subscribe(Weaver.PubSub, "messages")
+
+      tool_call = %{
+        id: "call_normal_1",
+        type: "function",
+        function: %{
+          name: "broadcast-normal-tool",
+          arguments: "{}"
+        }
+      }
+
+      message = %{
+        role: "assistant",
+        tool_calls: [tool_call]
+      }
+
+      send(pid, message)
+
+      Process.sleep(200)
+
+      receive do
+        [response] ->
+          assert response[:id] == "call_normal_1"
+          assert response[:role] == "tool"
+          assert response[:content] == "normal response"
+      after
+        2000 ->
+          flunk("Timed out waiting for non-terminal tool broadcast to messages topic")
+      end
+    end
+  end
+
 end
