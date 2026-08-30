@@ -78,8 +78,15 @@ defmodule Weaver.Api.OpenAITest do
         assert body.store == false
 
         # Assert the messages are correctly encoded
-        assert Enum.member?(body.messages, %{role: "user", content: "What is the meaning of life?"})
-        assert Enum.member?(body.messages, %{role: "system", content: "You are a helpful assistant."})
+        assert Enum.member?(body.messages, %{
+                 role: "user",
+                 content: "What is the meaning of life?"
+               })
+
+        assert Enum.member?(body.messages, %{
+                 role: "system",
+                 content: "You are a helpful assistant."
+               })
 
         Req.Test.json(conn, %{
           "choices" => [%{"message" => %{"role" => "assistant", "content" => "42"}}],
@@ -93,6 +100,7 @@ defmodule Weaver.Api.OpenAITest do
           %{role: "user", content: "What is the meaning of life?"}
         ]
       }
+
       result = Weaver.Api.OpenAI.chat(context)
 
       assert result.message.content == "42"

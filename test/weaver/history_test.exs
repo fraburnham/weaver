@@ -258,7 +258,8 @@ defmodule Weaver.HistoryTest do
 
       # Call resume
       Weaver.History.resume(history_file)
-      Process.sleep(200) # Give time for resume to complete and broadcast
+      # Give time for resume to complete and broadcast
+      Process.sleep(200)
 
       # Verify a new history file was created after resume
       files_after = File.ls!(context[:base_dir])
@@ -269,5 +270,4 @@ defmodule Weaver.HistoryTest do
       assert File.exists?(newest_file)
     end
   end
-
 end

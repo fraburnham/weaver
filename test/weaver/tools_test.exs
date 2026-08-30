@@ -62,6 +62,7 @@ defmodule Weaver.ToolsInitTest do
 
     test "preserves config state including tool_modules" do
       initial_modules = %{"mock-tool" => MockModule}
+
       config = %Tools{
         base_dir: "/test/dir",
         tool_definitions: nil,
@@ -87,7 +88,7 @@ defmodule Weaver.ToolsRetrievalTest do
       tmp_dir = System.tmp_dir!()
       tool_dir = Path.join([tmp_dir, "test_tools_#{:erlang.unique_integer([:positive])}"])
       File.mkdir_p!(Path.join(tool_dir, "test-stdio-tool"))
-      
+
       definition = %{
         type: "function",
         function: %{
@@ -97,7 +98,10 @@ defmodule Weaver.ToolsRetrievalTest do
         }
       }
 
-      File.write!(Path.join(tool_dir, "test-stdio-tool/definition.json"), Jason.encode!(definition))
+      File.write!(
+        Path.join(tool_dir, "test-stdio-tool/definition.json"),
+        Jason.encode!(definition)
+      )
 
       on_exit(fn ->
         File.rm_rf!(tool_dir)
@@ -194,7 +198,7 @@ defmodule Weaver.ToolsRetrievalTest do
       definitions = Tools.get_tool_definitions(["test-stdio-tool", "mixed-mock-tool"])
 
       assert length(definitions) == 2
-      
+
       stdio_def = Enum.find(definitions, fn d -> d[:function][:name] == "test-stdio-tool" end)
       module_def = Enum.find(definitions, fn d -> d[:function][:name] == "mixed-mock-tool" end)
 
@@ -272,7 +276,9 @@ defmodule Weaver.ToolsHandlingTest do
       %{pid: pid}
     end
 
-    test "formats response correctly for module-based tools and broadcasts to messages", %{pid: pid} do
+    test "formats response correctly for module-based tools and broadcasts to messages", %{
+      pid: pid
+    } do
       subscribe(Weaver.PubSub, "messages")
 
       tool_call = %{
@@ -309,7 +315,10 @@ defmodule Weaver.ToolsHandlingTest do
   describe "handle_info - STDIO tool calls" do
     setup do
       tmp_dir = System.tmp_dir!()
-      tool_dir = Path.join([tmp_dir, "test_stdio_handling_#{:erlang.unique_integer([:positive])}"])
+
+      tool_dir =
+        Path.join([tmp_dir, "test_stdio_handling_#{:erlang.unique_integer([:positive])}"])
+
       stdio_tool_dir = Path.join(tool_dir, "test-stdio-handler")
       File.mkdir_p!(stdio_tool_dir)
 
@@ -694,5 +703,4 @@ defmodule Weaver.ToolsHandlingTest do
       refute_receive [_]
     end
   end
-
 end

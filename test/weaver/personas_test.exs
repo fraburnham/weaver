@@ -30,11 +30,13 @@ defmodule Weaver.PersonasTest do
 
     test "preserves whitespace and newlines", context do
       persona_path = context[:persona_dir]
+
       prompt = """
       System Prompt
       Line 2
       \tLine 3
       """
+
       File.write!(Path.join(persona_path, "PERSONA.md"), prompt)
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
@@ -51,6 +53,7 @@ defmodule Weaver.PersonasTest do
 
     test "raises File.Error when PERSONA.md is missing", context do
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise File.Error, fn ->
         Personas.system_prompt(persona)
       end
@@ -73,6 +76,7 @@ defmodule Weaver.PersonasTest do
       File.write!(Path.join(persona_path, "persona.json"), json)
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise KeyError, fn ->
         Personas.tools_available(persona)
       end
@@ -83,6 +87,7 @@ defmodule Weaver.PersonasTest do
       File.write!(Path.join(persona_path, "persona.json"), "{invalid json")
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise Jason.DecodeError, fn ->
         Personas.tools_available(persona)
       end
@@ -90,6 +95,7 @@ defmodule Weaver.PersonasTest do
 
     test "raises File.Error when persona.json is missing", context do
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise File.Error, fn ->
         Personas.tools_available(persona)
       end
@@ -124,6 +130,7 @@ defmodule Weaver.PersonasTest do
       File.write!(Path.join(persona_path, "persona.json"), json)
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise MatchError, fn ->
         Personas.model(persona)
       end
@@ -135,6 +142,7 @@ defmodule Weaver.PersonasTest do
       File.write!(Path.join(persona_path, "persona.json"), json)
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise MatchError, fn ->
         Personas.model(persona)
       end
@@ -154,6 +162,7 @@ defmodule Weaver.PersonasTest do
 
     test "raises File.Error when persona.json is missing", context do
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise File.Error, fn ->
         Personas.model(persona)
       end
@@ -164,6 +173,7 @@ defmodule Weaver.PersonasTest do
       File.write!(Path.join(persona_path, "persona.json"), "{invalid json")
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise Jason.DecodeError, fn ->
         Personas.model(persona)
       end
@@ -194,6 +204,7 @@ defmodule Weaver.PersonasTest do
       File.write!(Path.join(persona_path, "persona.json"), "{invalid json")
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise Jason.DecodeError, fn ->
         Personas.context_window(persona)
       end
@@ -201,6 +212,7 @@ defmodule Weaver.PersonasTest do
 
     test "raises File.Error when persona.json is missing", context do
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
+
       assert_raise File.Error, fn ->
         Personas.context_window(persona)
       end

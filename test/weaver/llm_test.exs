@@ -112,7 +112,7 @@ defmodule Weaver.LLMTest do
       {:ok, _pid} = Weaver.LLM.start_link(config)
 
       # Send :clear command
-      send(Weaver.LLM,  :clear)
+      send(Weaver.LLM, :clear)
 
       # Get state - context should be reset
       state = :sys.get_state(Weaver.LLM)
@@ -133,7 +133,7 @@ defmodule Weaver.LLMTest do
       initial_state = :sys.get_state(Weaver.LLM)
 
       # Send :clear command
-      send(Weaver.LLM,  :clear)
+      send(Weaver.LLM, :clear)
 
       # State should remain unchanged
       state = :sys.get_state(Weaver.LLM)
@@ -149,7 +149,7 @@ defmodule Weaver.LLMTest do
       {:ok, _pid} = Weaver.LLM.start_link(config)
 
       # Send terminal_tool_call
-      send(Weaver.LLM,  {:terminal_tool_call, %{}})
+      send(Weaver.LLM, {:terminal_tool_call, %{}})
 
       # Process should send :clear to itself, triggering context reset
       # We can verify by checking state after a brief pause
@@ -174,7 +174,7 @@ defmodule Weaver.LLMTest do
 
       # Send user message
       user_msg = %{role: "user", content: "Hello"}
-      send(Weaver.LLM,  user_msg)
+      send(Weaver.LLM, user_msg)
 
       # Should receive assistant response on messages topic
       assert_receive %{role: "assistant", content: "Mocked response"}
@@ -203,7 +203,7 @@ defmodule Weaver.LLMTest do
 
       # Send assistant message (should be ignored)
       assistant_msg = %{role: "assistant", content: "Already in context"}
-      send(Weaver.LLM,  assistant_msg)
+      send(Weaver.LLM, assistant_msg)
 
       # State should be unchanged
       state = :sys.get_state(Weaver.LLM)
@@ -222,7 +222,7 @@ defmodule Weaver.LLMTest do
 
       # Send system message (should be ignored)
       system_msg = %{role: "system", content: "System prompt"}
-      send(Weaver.LLM,  system_msg)
+      send(Weaver.LLM, system_msg)
 
       # State should be unchanged
       state = :sys.get_state(Weaver.LLM)
@@ -241,7 +241,7 @@ defmodule Weaver.LLMTest do
 
       # Send resume message
       resume_msg = %{role: "user", content: "Resumed message", resume: true}
-      send(Weaver.LLM,  resume_msg)
+      send(Weaver.LLM, resume_msg)
 
       # Message should be added but no API call
       state = :sys.get_state(Weaver.LLM)
@@ -263,7 +263,8 @@ defmodule Weaver.LLMTest do
         %{role: "tool", content: "Tool result 1", id: "call_1"},
         %{role: "tool", content: "Tool result 2", id: "call_2"}
       ]
-      send(Weaver.LLM,  tool_responses)
+
+      send(Weaver.LLM, tool_responses)
 
       # Should receive assistant response
       assert_receive %{role: "assistant", content: "Mocked response"}
@@ -288,7 +289,7 @@ defmodule Weaver.LLMTest do
       Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
       # Send some messages to populate context
-      send(Weaver.LLM,  %{role: "user", content: "Test"})
+      send(Weaver.LLM, %{role: "user", content: "Test"})
       assert_receive %{role: "assistant"}
 
       # Get state with messages
@@ -296,7 +297,7 @@ defmodule Weaver.LLMTest do
       assert length(state_before.context[:messages]) > 1
 
       # Send resume clear
-      send(Weaver.LLM,  {:resume, :clear})
+      send(Weaver.LLM, {:resume, :clear})
 
       # Context messages should be cleared
       state_after = :sys.get_state(Weaver.LLM)
@@ -313,7 +314,7 @@ defmodule Weaver.LLMTest do
       initial_state = :sys.get_state(Weaver.LLM)
 
       # Send resume with other value
-      send(Weaver.LLM,  {:resume, :something_else})
+      send(Weaver.LLM, {:resume, :something_else})
 
       # State should be unchanged
       state = :sys.get_state(Weaver.LLM)
@@ -330,7 +331,7 @@ defmodule Weaver.LLMTest do
       initial_state = :sys.get_state(Weaver.LLM)
 
       # Send resume_end
-      send(Weaver.LLM,  :resume_end)
+      send(Weaver.LLM, :resume_end)
 
       # State should be unchanged
       state = :sys.get_state(Weaver.LLM)
