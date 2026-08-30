@@ -1,7 +1,20 @@
 defmodule Weaver.LLM do
   @moduledoc """
-  `Weaver.LLM` ties together the API and message queue by maintaining conversation context with system prompt
-  and message history, calling the API for each LLM turn, and broadcasting responses to all subscribers.
+  Maintains conversation context and manages LLM interactions.
+
+  `Weaver.LLM` ties together the API and messages topic by:
+  - Maintaining conversation context with system prompt and message history
+  - Calling the API for each LLM turn
+  - Broadcasting responses to all subscribers
+
+  ## Configuration
+
+      config :weaver,
+        llm: [api: Elixir.Module.That.Implements.Weaver.Api]
+
+  | Key | Description |
+  |-----|------|
+  | `:api` | An elixir module that implements the `Weaver.Api` behaviour |
   """
 
   use GenServer, restart: :transient

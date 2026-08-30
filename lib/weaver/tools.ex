@@ -8,8 +8,12 @@ end
 
 defmodule Weaver.Tools do
   @moduledoc """
-  `Weaver.Tools` is responsible for calling tools and formatting their response appropriately. It broadcasts
-  a list of messages, never a bare message map.
+  Manages tool execution and responses.
+
+  `Weaver.Tools` handles calling tools via a STDIO interface or by invoking Elixir modules
+  that implement the `Weaver.Tools.Tool` behaviour. It broadcasts a list of tool response
+  messages to the `"messages"` topic, or broadcasts to `"commands"` if a terminal tool
+  call is encountered.
   """
   use GenServer
 
@@ -146,6 +150,13 @@ defmodule Weaver.Tools do
     end
   end
 
+  @doc """
+  Retrieves the definitions for the given list of tools.
+
+  Returns a list of tool definition maps. If a tool is registered as an Elixir
+  module, its `c:Weaver.Tools.Tool.definition/0` callback is invoked. Otherwise,
+  the definition is loaded from the tool's `definition.json` file via the STDIO interface.
+  """
   def get_tool_definitions(tools) do
     GenServer.call(__MODULE__, {:get_tool_definitions, tools})
   end
