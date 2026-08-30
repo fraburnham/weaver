@@ -27,8 +27,6 @@ defmodule Weaver.HistoryTest do
     test "single message persistence", context do
       # Initialize the history file by sending :clear command
       Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
-      Process.sleep(50)
-
       # Publish a single message to the "messages" topic
       Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "test"})
       Process.sleep(50)
@@ -106,7 +104,7 @@ defmodule Weaver.HistoryTest do
       # Get the first file
       files = File.ls!(context[:base_dir])
       assert length(files) == 1
-      first_file = Path.join(context[:base_dir], List.first(files))
+      _first_file = Path.join(context[:base_dir], List.first(files))
 
       # Send :clear to create a new file
       Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
@@ -247,17 +245,9 @@ defmodule Weaver.HistoryTest do
     end
 
     test "resume/1 replays messages and commands with resume: true", context do
-      # Subscribe to topics to capture broadcasts
-      Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
-      Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
-
       # Initialize a file and write some history
       Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
-      Process.sleep(50)
-
       Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{role: "user", content: "hello"})
-      Process.sleep(50)
-
       Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :some_command)
       Process.sleep(50)
 

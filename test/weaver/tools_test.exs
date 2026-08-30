@@ -1,3 +1,45 @@
+defmodule BroadcastTerminalMockModule do
+  @behaviour Weaver.Tools.Tool
+
+  @impl true
+  def definition() do
+    %{
+      type: "function",
+      function: %{
+        name: "broadcast-terminal-tool",
+        description: "A terminal broadcast test tool",
+        parameters: %{type: "object", properties: %{}}
+      }
+    }
+  end
+
+  @impl true
+  def run(_tool_call) do
+    {:terminal, "terminal data"}
+  end
+end
+
+defmodule BroadcastNormalMockModule do
+  @behaviour Weaver.Tools.Tool
+
+  @impl true
+  def definition() do
+    %{
+      type: "function",
+      function: %{
+        name: "broadcast-normal-tool",
+        description: "A normal broadcast test tool",
+        parameters: %{type: "object", properties: %{}}
+      }
+    }
+  end
+
+  @impl true
+  def run(_tool_call) do
+    "normal response"
+  end
+end
+
 defmodule Weaver.ToolsInitTest do
   use ExUnit.Case, async: false
 
@@ -410,48 +452,6 @@ defmodule Weaver.ToolsHandlingTest do
 
   describe "handle_info - Broadcast scenarios" do
     setup do
-      defmodule BroadcastTerminalMockModule do
-        @behaviour Weaver.Tools.Tool
-
-        @impl true
-        def definition() do
-          %{
-            type: "function",
-            function: %{
-              name: "broadcast-terminal-tool",
-              description: "A terminal broadcast test tool",
-              parameters: %{type: "object", properties: %{}}
-            }
-          }
-        end
-
-        @impl true
-        def run(_tool_call) do
-          {:terminal, "terminal data"}
-        end
-      end
-
-      defmodule BroadcastNormalMockModule do
-        @behaviour Weaver.Tools.Tool
-
-        @impl true
-        def definition() do
-          %{
-            type: "function",
-            function: %{
-              name: "broadcast-normal-tool",
-              description: "A normal broadcast test tool",
-              parameters: %{type: "object", properties: %{}}
-            }
-          }
-        end
-
-        @impl true
-        def run(_tool_call) do
-          "normal response"
-        end
-      end
-
       config = %Tools{
         base_dir: "/tmp/unused",
         tool_definitions: [
