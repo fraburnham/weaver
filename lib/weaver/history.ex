@@ -136,7 +136,7 @@ defmodule Weaver.History do
     end)
 
     # The resume_end signals that normal interaction can resume
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :resume_end)
+    Phoenix.PubSub.broadcast(pubsub, "commands", :resume_end)
 
     {:ok, file_descriptor} = init_history_file(base_dir)
     {:noreply, {file_descriptor, base_dir}}
