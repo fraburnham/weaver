@@ -104,10 +104,13 @@ defmodule Weaver.LLM do
   def handle_info({:resume, _}, state), do: {:noreply, state}
 
   @impl true
-  def handle_info(:resume_end, state) do
-    # TODO: Will need a way to detect whose turn it is and possibly send the context to the llm
-    {:noreply, state}
+  def handle_info(:resume_end, state = %{context: %{messages: [%{role: role} | _]}})
+      when role in ["user", "tool"] do
+    {:noreply, assistant_turn(state)}
   end
+
+  @impl true
+  def handle_info(:resume_end, state), do: {:noreply, state}
 
   #
   # "messages" handlers
@@ -120,37 +123,34 @@ defmodule Weaver.LLM do
   # Messages from tool calls or user prompts have to be sent to the llm
   @impl true
   def handle_info(msg = %{role: role}, state = %LLM{}) when role in ["user", "tool"] do
-    state = add_message(state, msg)
-    %{message: response, total_tokens: total_tokens, input_tokens: input_tokens} = request(state)
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
-
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "metrics", %{
-      total_tokens: total_tokens,
-      input_tokens: input_tokens
-    })
-
-    {:noreply, add_message(state, response) |> add_context_usage(total_tokens)}
+    {:noreply, add_message(state, msg) |> assistant_turn()}
   end
 
   # Sometimes multiple tools are called in a single turn
   @impl true
   def handle_info(tool_responses = [%{role: "tool"} | _], state) do
-    state = List.foldr(tool_responses, state, fn resp, acc -> add_message(acc, resp) end)
-    %{message: response, total_tokens: total_tokens, input_tokens: input_tokens} = request(state)
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
-
-    Phoenix.PubSub.broadcast(Weaver.PubSub, "metrics", %{
-      total_tokens: total_tokens,
-      input_tokens: input_tokens
-    })
-
-    {:noreply, add_message(state, response) |> add_context_usage(total_tokens)}
+    {:noreply,
+     List.foldr(tool_responses, state, fn resp, acc -> add_message(acc, resp) end)
+     |> assistant_turn()}
   end
 
   # Messages from the llm are already added to the context
   @impl true
   def handle_info(%{role: role}, state) when role in ["assistant", "system"],
     do: {:noreply, state}
+
+  defp assistant_turn(state) do
+    %{message: response, total_tokens: total_tokens, input_tokens: input_tokens} = request(state)
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
+
+    Phoenix.PubSub.broadcast(Weaver.PubSub, "metrics", %{
+      total_tokens: total_tokens,
+      input_tokens: input_tokens
+    })
+
+    add_message(state, response)
+    |> add_context_usage(total_tokens)
+  end
 
   # Send a request to the api (using an api module)
   defp request(%LLM{context: context, api: api}) do
