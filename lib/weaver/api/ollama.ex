@@ -7,7 +7,7 @@ defmodule Weaver.Api.Ollama do
 
   defstruct base_url: nil
 
-  def start_link(), do: nil
+  def start_link(), do: {:ok, nil}
 
   def chat(context) do
     %{base_url: base_url} = struct!(Weaver.Api.Ollama, Application.get_env(:weaver, :ollama))

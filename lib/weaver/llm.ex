@@ -39,13 +39,13 @@ defmodule Weaver.LLM do
 
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
 
-    {:ok, config}
+    {:ok, config, {:continue, :start_api}}
   end
 
   @impl true
   def handle_continue(:start_api, config = %LLM{api: api}) do
     # TODO: this should fail if the child fails to start
-    api.start_link()
+    {:ok, _} = api.start_link()
 
     {:noreply, config}
   end
