@@ -59,4 +59,102 @@ defmodule Weaver.Api.Bedrock.RequestTest do
       GenServer.stop(:test_request_state)
     end
   end
+
+  describe "handle_info/2 - Credential Updates" do
+    test "handles :update_credentials message" do
+      fake_credential_process = fn ->
+        %{
+          "AccessKeyId" => "updated_key",
+          "SecretAccessKey" => "updated_secret",
+          "SessionToken" => "updated_token",
+          "Expiration" => "2025-06-01T00:00:00Z"
+        }
+      end
+
+      config = %Request{credential_process: fake_credential_process}
+
+      assert {:ok, _pid} = GenServer.start_link(Request, config, name: :test_handle_info)
+
+      # Credentials should be loaded from init
+      credentials = GenServer.call(:test_handle_info, :get_credentials)
+      assert credentials == [
+               access_key_id: "updated_key",
+               secret_access_key: "updated_secret",
+               security_token: "updated_token"
+             ]
+
+      # Send another :update_credentials message to test handle_info
+      send(:test_handle_info, :update_credentials)
+
+      # Give the GenServer time to process the message
+      Process.sleep(100)
+
+      # Credentials should still be valid after re-update
+      credentials = GenServer.call(:test_handle_info, :get_credentials)
+      assert credentials == [
+               access_key_id: "updated_key",
+               secret_access_key: "updated_secret",
+               security_token: "updated_token"
+             ]
+
+      GenServer.stop(:test_handle_info)
+    end
+
+    test "update_credentials with valid JSON updates state correctly" do
+      fake_credential_process = fn ->
+        %{
+          "AccessKeyId" => "A",
+          "SecretAccessKey" => "S",
+          "SessionToken" => "T",
+          "Expiration" => "E"
+        }
+      end
+
+      config = %Request{credential_process: fake_credential_process}
+
+      assert {:ok, _pid} = GenServer.start_link(Request, config, name: :test_valid_json)
+
+      # Wait for credentials to be loaded
+      Process.sleep(100)
+
+      credentials = GenServer.call(:test_valid_json, :get_credentials)
+
+      assert credentials == [
+               access_key_id: "A",
+               secret_access_key: "S",
+               security_token: "T"
+             ]
+
+      GenServer.stop(:test_valid_json)
+    end
+
+    test "update_credentials with missing keys sets nil values" do
+      fake_credential_process = fn ->
+        %{
+          "AccessKeyId" => "A"
+          # Missing SecretAccessKey, SessionToken, Expiration
+        }
+      end
+
+      config = %Request{credential_process: fake_credential_process}
+
+      # Starting the GenServer with partial credentials should succeed
+      # but missing keys will be nil (map access returns nil for missing keys)
+      assert {:ok, _pid} = GenServer.start_link(Request, config, name: :test_missing_keys)
+
+      # Give the GenServer time to process credentials
+      Process.sleep(100)
+
+      credentials = GenServer.call(:test_missing_keys, :get_credentials)
+
+      # access_key_id should be set, others should be nil
+      assert credentials == [
+               access_key_id: "A",
+               secret_access_key: nil,
+               security_token: nil
+             ]
+
+      GenServer.stop(:test_missing_keys)
+    end
+  end
 end
