@@ -132,7 +132,7 @@ defmodule Weaver.Api.Anthropic do
         model: model,
         messages:
           List.foldl(messages, [], fn el, acc ->
-            [Weaver.Api.Anthropic.message_to_anthropic(el) | acc]
+            [Map.drop(el, [:resume]) |> Weaver.Api.Anthropic.message_to_anthropic() | acc]
           end),
         system: system,
         tools: Enum.map(tools, &Weaver.Api.Anthropic.translate_tool/1),

@@ -179,7 +179,7 @@ defmodule Weaver.Api.Bedrock do
   def parse_tool_calls(any, _), do: any
 
   def chat(data = %{model: model}) do
-    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!/1)
+    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
     tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
 
     %{
