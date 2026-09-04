@@ -2,6 +2,10 @@
     "model": "qwen3.6:27b-q4_K_M",
     "api": "Weaver.Api.Ollama",
     "context_window": 32000,
+    "output_tokens": 16000,
+    "temperature": 0.6,
+    "top_p": 0.95,
+    "top_k": 20,
     "tools": [
         "store-memory",
         "search-memory",

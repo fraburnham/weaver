@@ -25,7 +25,7 @@ defmodule Weaver.Application do
     system_prompt = Personas.system_prompt(personas)
     {model, api} = Personas.model(personas)
     tools_available = Personas.tools_available(personas)
-    context_window = Personas.context_window(personas)
+    model_options = Personas.model_options(personas)
 
     children =
       case Mix.env() do
@@ -47,7 +47,7 @@ defmodule Weaver.Application do
                {:api, api},
                {:system_prompt, system_prompt},
                {:tools_available, tools_available},
-               {:context_window, context_window}
+               {:model_options, model_options}
                | Application.get_env(:weaver, :llm, [])
              ])},
             {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}

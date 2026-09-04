@@ -25,9 +25,9 @@ defmodule Weaver.Personas do
     {model, Module.concat([api])}
   end
 
-  def context_window(%Personas{base_dir: base_dir, name: persona}) do
+  def model_options(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
     |> Jason.decode!(keys: :atoms)
-    |> Map.get(:context_window)
+    |> Map.take([:context_window, :temperature, :top_p, :top_k, :output_tokens])
   end
 end

@@ -22,7 +22,7 @@ defmodule Weaver.LLM do
   alias Weaver.Tools
 
   defstruct model: nil,
-            context_window: nil,
+            model_options: %{},
             api: nil,
             api_pid: nil,
             context: nil,
@@ -187,7 +187,7 @@ defmodule Weaver.LLM do
          model: model,
          system_prompt: system_prompt,
          tools_available: tools_available,
-         context_window: context_window
+         model_options: model_options
        }) do
     system_prompt = %{
       role: "system",
@@ -200,9 +200,12 @@ defmodule Weaver.LLM do
       model: model,
       messages: [system_prompt],
       tools: Tools.get_tool_definitions(tools_available),
-      options: %{
-        num_ctx: context_window
-      }
+      options: Map.drop(model_options, [:context_window, :output_tokens]) |> Map.merge(
+        %{
+          num_ctx: model_options[:context_window],
+          num_predict: model_options[:output_tokens]
+        }
+      )
     }
   end
 end

@@ -69,7 +69,7 @@ defmodule Weaver.LLMTest do
     # Build test config with MockApi module
     config = %Weaver.LLM{
       model: "test-model",
-      context_window: 8192,
+      model_options: %{context_window: 8192},
       api: MockApi,
       system_prompt: "You are a helpful assistant.",
       tools_available: ["test_tool"]
@@ -90,7 +90,7 @@ defmodule Weaver.LLMTest do
       state = :sys.get_state(Weaver.LLM)
 
       assert state.model == "test-model"
-      assert state.context_window == 8192
+      assert state.model_options.context_window == 8192
       assert state.api == MockApi
       assert state.system_prompt == "You are a helpful assistant."
       assert state.tools_available == ["test_tool"]

@@ -180,23 +180,23 @@ defmodule Weaver.PersonasTest do
     end
   end
 
-  describe "context_window/1" do
-    test "returns the integer value specified in context_window", context do
+  describe "model_options/1" do
+    test "returns the options specified", context do
       persona_path = context[:persona_dir]
       json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": [], "context_window": 8192}|
       File.write!(Path.join(persona_path, "persona.json"), json)
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
-      assert Personas.context_window(persona) == 8192
+      assert Personas.model_options(persona) == %{context_window: 8192}
     end
 
-    test "returns nil when context_window key is missing", context do
+    test "returns %{} when model_options key is missing", context do
       persona_path = context[:persona_dir]
       json = ~s|{"model": "gpt-4", "api": "OpenAI", "tools": []}|
       File.write!(Path.join(persona_path, "persona.json"), json)
 
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
-      assert Personas.context_window(persona) == nil
+      assert Personas.model_options(persona) == %{}
     end
 
     test "raises Jason.DecodeError when JSON is malformed", context do
@@ -206,7 +206,7 @@ defmodule Weaver.PersonasTest do
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
 
       assert_raise Jason.DecodeError, fn ->
-        Personas.context_window(persona)
+        Personas.model_options(persona)
       end
     end
 
@@ -214,7 +214,7 @@ defmodule Weaver.PersonasTest do
       persona = %Personas{base_dir: context[:base_dir], name: "test_persona"}
 
       assert_raise File.Error, fn ->
-        Personas.context_window(persona)
+        Personas.model_options(persona)
       end
     end
   end
