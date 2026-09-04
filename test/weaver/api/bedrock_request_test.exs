@@ -157,4 +157,48 @@ defmodule Weaver.Api.Bedrock.RequestTest do
       GenServer.stop(:test_missing_keys)
     end
   end
+
+  describe "handle_call/3 - API Wrapper Functions" do
+    test "get_credentials returns credentials with security_token mapped from session_token" do
+      # Setup: GenServer state populated with credentials
+      state = %Request{
+        credential_process: fn -> %{} end,
+        access_key_id: "AKIAIOSFODNN7EXAMPLE",
+        secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        session_token: "FwoGZXIvYXdzEBYaDH...",
+        expiration: "2025-12-31T23:59:59Z"
+      }
+
+      # Call handle_call directly with pre-populated state
+      result = Request.handle_call(:get_credentials, :from, state)
+
+      # Expectation: Returns {:reply, [access_key_id: ..., secret_access_key: ..., security_token: ...], state}
+      assert {:reply, credentials, ^state} = result
+
+      assert credentials == [
+               access_key_id: "AKIAIOSFODNN7EXAMPLE",
+               secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+               security_token: "FwoGZXIvYXdzEBYaDH..."
+             ]
+    end
+
+    test "get_credentials maps session_token from state to security_token in reply" do
+      # Note: Ensure session_token in state maps to security_token in reply (per ExAws requirements)
+      state = %Request{
+        credential_process: nil,
+        access_key_id: "test_key",
+        secret_access_key: "test_secret",
+        session_token: "test_session_token_value",
+        expiration: nil
+      }
+
+      result = Request.handle_call(:get_credentials, :from, state)
+
+      assert {:reply, credentials, _state} = result
+
+      # Verify security_token is present (not session_token)
+      assert {:security_token, "test_session_token_value"} in credentials
+      refute Enum.any?(credentials, fn {key, _val} -> key == :session_token end)
+    end
+  end
 end
