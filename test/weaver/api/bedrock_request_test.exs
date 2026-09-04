@@ -77,6 +77,7 @@ defmodule Weaver.Api.Bedrock.RequestTest do
 
       # Credentials should be loaded from init
       credentials = GenServer.call(:test_handle_info, :get_credentials)
+
       assert credentials == [
                access_key_id: "updated_key",
                secret_access_key: "updated_secret",
@@ -91,6 +92,7 @@ defmodule Weaver.Api.Bedrock.RequestTest do
 
       # Credentials should still be valid after re-update
       credentials = GenServer.call(:test_handle_info, :get_credentials)
+
       assert credentials == [
                access_key_id: "updated_key",
                secret_access_key: "updated_secret",

@@ -45,10 +45,11 @@ defmodule Weaver.LLM do
 
   @impl true
   def handle_continue(:start_api, config = %LLM{api: api}) do
-    pid = case api.start_link() do
-      {:ok, pid} -> pid
-      {:error, {:already_started, pid}} -> pid
-    end
+    pid =
+      case api.start_link() do
+        {:ok, pid} -> pid
+        {:error, {:already_started, pid}} -> pid
+      end
 
     {:noreply, %LLM{config | api_pid: pid}}
   end
@@ -200,12 +201,12 @@ defmodule Weaver.LLM do
       model: model,
       messages: [system_prompt],
       tools: Tools.get_tool_definitions(tools_available),
-      options: Map.drop(model_options, [:context_window, :output_tokens]) |> Map.merge(
-        %{
+      options:
+        Map.drop(model_options, [:context_window, :output_tokens])
+        |> Map.merge(%{
           num_ctx: model_options[:context_window],
           num_predict: model_options[:output_tokens]
-        }
-      )
+        })
     }
   end
 end
