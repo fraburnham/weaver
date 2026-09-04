@@ -50,11 +50,12 @@ defmodule Weaver.Api.Bedrock do
         end),
         :tool_calls,
         Access.all(),
-        :function,
-        :arguments
+        :function
       ],
-      fn arguments ->
-        updater.(arguments)
+      fn data = %{arguments: arguments, id: id} ->
+        Map.put(data, :arguments, updater.(arguments))
+        |> Map.put(:tool_call_id, id)
+        |> Map.drop([:id])
       end
     )
   end
