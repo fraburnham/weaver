@@ -24,6 +24,7 @@ defmodule Weaver.LLM do
   defstruct model: nil,
             context_window: nil,
             api: nil,
+            api_pid: nil,
             context: nil,
             system_prompt: nil,
             tools_available: nil,
@@ -44,11 +45,21 @@ defmodule Weaver.LLM do
 
   @impl true
   def handle_continue(:start_api, config = %LLM{api: api}) do
-    # TODO: this should fail if the child fails to start
-    {:ok, _} = api.start_link()
+    pid = case api.start_link() do
+      {:ok, pid} -> pid
+      {:error, {:already_started, pid}} -> pid
+    end
 
-    {:noreply, config}
+    {:noreply, %LLM{config | api_pid: pid}}
   end
+
+  @impl true
+  def terminate(_reason, %LLM{api_pid: pid}) when is_pid(pid) do
+    GenServer.stop(pid)
+  end
+
+  @impl true
+  def terminate(_, _), do: nil
 
   #
   # "commands" handlers
