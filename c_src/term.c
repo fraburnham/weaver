@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include "erl_nif.h"
+#include "input.h"
 
 bool c_cc_to_erl_array(ErlNifEnv *env, struct termios *config,
                        ERL_NIF_TERM arr[]) {
@@ -149,7 +150,8 @@ static ERL_NIF_TERM get_config(ErlNifEnv *env, int argc,
 
 static ErlNifFunc nif_funcs[] = {{"get_flag_values", 0, get_flag_values},
                                  {"set_config", 1, set_config},
-                                 {"get_config", 0, get_config}};
+                                 {"get_config", 0, get_config},
+                                 {"attempt_read", 0, attempt_read}};
 
 ERL_NIF_INIT(Elixir.Weaver.TUI.Term, nif_funcs, NULL, NULL, NULL, NULL)
 

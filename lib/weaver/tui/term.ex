@@ -8,4 +8,5 @@ defmodule Weaver.TUI.Term do
   def set_config(_config), do: :erlang.nif_error(:nif_not_loaded)
   def get_config, do: :erlang.nif_error(:nif_not_loaded)
   def get_flag_values, do: :erlang.nif_error(:nif_not_loaded)
+  def attempt_read, do: :erlang.nif_error(:nif_not_loaded)
 end
