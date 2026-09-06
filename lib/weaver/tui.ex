@@ -158,19 +158,23 @@ defmodule Weaver.TUI do
     {:noreply, %{state | total_tokens: total_tokens}}
   end
 
+  #
+  # private
+  #
+
   defp header do
     [:bright, "\nType '/exit' to quit"]
     |> ANSI.format()
     |> IO.puts()
   end
 
-  def prompt(msg) do
+  defp prompt(msg) do
     if not Map.has_key?(msg, :tool_calls) do
       prompt()
     end
   end
 
-  def prompt do
+  defp prompt do
     send(__MODULE__, :prompt)
   end
 
