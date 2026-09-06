@@ -19,7 +19,11 @@ defmodule Weaver.TUI.IO do
   @impl true
   def init(state = %WIO{}) do
     {:ok, term_config = %{c_lflag: c_lflag}} = Term.get_config()
-    Term.set_config(%{term_config | c_lflag: set_flag(c_lflag, :ICANON, false) |> set_flag(:ECHOCTL, false)})
+
+    Term.set_config(%{
+      term_config
+      | c_lflag: set_flag(c_lflag, :ICANON, false) |> set_flag(:ECHOCTL, false)
+    })
 
     # TODO: know size of terminal and get notified/check for updates (eventually)
     # Know the length of the prompt when it comes in. Use all that to know how many lines to clear
@@ -111,6 +115,10 @@ defmodule Weaver.TUI.IO do
       10 ->
         send(caller, {:keyboard_input, IO.chardata_to_string(buffer)})
         %WIO{state | buffer: [], prompt_state: :not_prompting}
+
+      # Silently ignore control characters for now
+      c when c < 32 ->
+        state
 
       c ->
         %WIO{state | buffer: [buffer | [c]]}
