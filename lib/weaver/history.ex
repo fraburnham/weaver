@@ -30,6 +30,11 @@ defmodule Weaver.History do
   defstruct base_dir: nil,
             pubsub: nil
 
+  @type file_descriptor :: File.io_device()
+  @type config :: %History{}
+  @type state :: {file_descriptor | nil, config}
+  @type pubsub_name :: atom()
+
   def start_link(options) do
     config =
       struct!(History, [{:pubsub, Application.get_env(:weaver, :pubsub)} | options[:config]])
@@ -146,18 +151,22 @@ defmodule Weaver.History do
   # private helpers
   #
 
+  @spec update_file(file_descriptor, map()) :: :ok | {:error, Exception.t()}
   defp update_file(file_descriptor, msg) do
     IO.puts(file_descriptor, Jason.encode_to_iodata!(msg))
   end
 
+  @spec resume_line(pubsub_name, map()) :: :ok
   defp resume_line(pubsub, msg = %{role: _}) do
     Phoenix.PubSub.broadcast(pubsub, "messages", msg)
   end
 
+  @spec resume_line(pubsub_name, map()) :: :ok
   defp resume_line(pubsub, %{command: cmd}) do
     Phoenix.PubSub.broadcast(pubsub, "commands", {:resume, String.to_atom(cmd)})
   end
 
+  @spec init_history_file(String.t()) :: {:ok, file_descriptor} | {:error, Exception.t()}
   defp init_history_file(base_dir) do
     history_file_path =
       [base_dir, "#{DateTime.to_iso8601(DateTime.utc_now())}.jsonl"]
@@ -185,6 +194,7 @@ defmodule Weaver.History do
       :ok
 
   """
+  @spec resume(String.t()) :: :ok
   def resume(history_file) do
     resume(history_file, __MODULE__)
   end
@@ -199,6 +209,7 @@ defmodule Weaver.History do
       :ok
 
   """
+  @spec resume(String.t(), GenServer.server()) :: :ok
   def resume(history_file, pid) do
     GenServer.cast(pid, {:start_resume, history_file})
   end
@@ -214,6 +225,7 @@ defmodule Weaver.History do
       ["2025-01-14T09:00:00.000000Z.jsonl", "2025-01-15T10:30:00.000000Z.jsonl"]
 
   """
+  @spec sessions() :: [String.t()]
   def sessions do
     sessions(__MODULE__)
   end
@@ -227,6 +239,7 @@ defmodule Weaver.History do
       ["2025-01-14T09:00:00.000000Z.jsonl", "2025-01-15T10:30:00.000000Z.jsonl"]
 
   """
+  @spec sessions(GenServer.server()) :: [String.t()]
   def sessions(pid) do
     GenServer.call(pid, :sessions)
     |> Enum.filter(fn el -> String.ends_with?(el, ".jsonl") end)
