@@ -31,6 +31,7 @@ defmodule Weaver.MixProject do
   defp deps do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:phoenix_pubsub, "~> 2.0"},
       {:marcli, "~> 0.3.1"},
       {:makeup_syntect, "~> 0.1.4"},
