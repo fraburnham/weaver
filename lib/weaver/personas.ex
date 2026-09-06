@@ -7,16 +7,21 @@ defmodule Weaver.Personas do
 
   defstruct base_dir: nil, name: nil
 
+  @type t :: %Personas{base_dir: String.t(), name: String.t()}
+
+  @spec system_prompt(t()) :: String.t()
   def system_prompt(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "PERSONA.md"]) |> Path.expand())
   end
 
+  @spec tools_available(t()) :: list()
   def tools_available(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
     |> Jason.decode!(keys: :atoms)
     |> Map.fetch!(:tools)
   end
 
+  @spec model(t()) :: {String.t(), module()}
   def model(%Personas{base_dir: base_dir, name: persona}) do
     %{model: model, api: api} =
       File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
@@ -25,6 +30,7 @@ defmodule Weaver.Personas do
     {model, Module.concat([api])}
   end
 
+  @spec model_options(t()) :: map()
   def model_options(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
     |> Jason.decode!(keys: :atoms)
