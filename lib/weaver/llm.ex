@@ -31,6 +31,18 @@ defmodule Weaver.LLM do
             total_tokens: nil,
             skip_init: false
 
+  @type t :: %LLM{
+          model: String.t() | nil,
+          model_options: map(),
+          api: module() | nil,
+          api_pid: pid() | nil,
+          context: map() | nil,
+          system_prompt: String.t() | nil,
+          tools_available: list() | nil,
+          total_tokens: integer() | nil,
+          skip_init: boolean()
+        }
+
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
@@ -151,6 +163,11 @@ defmodule Weaver.LLM do
   def handle_info(%{role: role}, state) when role in ["assistant", "system"],
     do: {:noreply, state}
 
+  #
+  # private
+  #
+
+  @spec assistant_turn(t()) :: t()
   defp assistant_turn(state) do
     %{message: response, total_tokens: total_tokens, input_tokens: input_tokens} = request(state)
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", response)
@@ -165,6 +182,7 @@ defmodule Weaver.LLM do
   end
 
   # Send a request to the api (using an api module)
+  @spec request(t()) :: map()
   defp request(%LLM{context: context, api: api}) do
     context
     |> context_to_api_context()
@@ -172,18 +190,22 @@ defmodule Weaver.LLM do
   end
 
   # Add a message to the context
+  @spec add_message(t(), map()) :: t()
   defp add_message(state = %LLM{}, msg) do
     %LLM{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
   end
 
+  @spec add_context_usage(t(), integer()) :: t()
   defp add_context_usage(state = %LLM{}, total_tokens) do
     %LLM{state | total_tokens: total_tokens}
   end
 
+  @spec context_to_api_context(map()) :: map()
   defp context_to_api_context(context) do
     %{context | messages: Enum.reverse(context[:messages])}
   end
 
+  @spec initial_context(t()) :: map()
   defp initial_context(%LLM{
          model: model,
          system_prompt: system_prompt,
