@@ -14,6 +14,16 @@ defmodule Weaver.TUI.IO do
 
   @poll_delay 5
 
+  @type t :: %WIO{
+          caller: reference() | nil,
+          buffer: [char()],
+          original_term_config: map() | nil,
+          prompt_state: :not_prompting | :prompting,
+          prompt: IO.chardata() | nil
+        }
+
+  @type term_config :: map()
+
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
@@ -88,6 +98,7 @@ defmodule Weaver.TUI.IO do
   # private
   #
 
+  @spec set_flag(bitfield :: non_neg_integer(), flag :: atom(), enabled :: boolean(), flag_mapping :: map()) :: non_neg_integer()
   defp set_flag(bitfield, flag, enabled, flag_mapping) do
     flag_value = Map.get(flag_mapping, flag)
 
@@ -98,9 +109,11 @@ defmodule Weaver.TUI.IO do
     end
   end
 
+  @spec set_flag(bitfield :: non_neg_integer(), flag :: atom(), enabled :: boolean()) :: non_neg_integer()
   defp set_flag(bitfield, flag, enabled),
     do: set_flag(bitfield, flag, enabled, Term.get_flag_values())
 
+  @spec handle_char(char(), t) :: t
   defp handle_char(c, state = %WIO{buffer: buffer, caller: caller}) do
     case c do
       c when c in [127, 8] ->
@@ -129,7 +142,9 @@ defmodule Weaver.TUI.IO do
   # public api
   #
 
+  @spec puts(IO.chardata()) :: :ok
   def puts(item), do: GenServer.call(__MODULE__, {:output, item})
 
+  @spec prompt(IO.chardata()) :: :ok | {:error, :not_prompting | :prompting}
   def prompt(p), do: GenServer.call(__MODULE__, {:prompt, p})
 end
