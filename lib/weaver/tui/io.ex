@@ -4,6 +4,7 @@ defmodule Weaver.TUI.IO do
   import Bitwise
   alias Weaver.TUI.Term
   alias Weaver.TUI.IO, as: WIO
+  alias Weaver.TUI.ANSI
 
   defstruct caller: nil,
             buffer: [],
@@ -18,7 +19,7 @@ defmodule Weaver.TUI.IO do
   @impl true
   def init(state = %WIO{}) do
     {:ok, term_config = %{c_lflag: c_lflag}} = Term.get_config()
-    Term.set_config(%{term_config | c_lflag: set_flag(c_lflag, :ICANON, false)})
+    Term.set_config(%{term_config | c_lflag: set_flag(c_lflag, :ICANON, false) |> set_flag(:ECHOCTL, false)})
 
     # TODO: know size of terminal and get notified/check for updates (eventually)
     # Know the length of the prompt when it comes in. Use all that to know how many lines to clear
@@ -98,6 +99,15 @@ defmodule Weaver.TUI.IO do
 
   defp handle_char(c, state = %WIO{buffer: buffer, caller: caller}) do
     case c do
+      c when c in [127, 8] ->
+        # backspace
+        # TODO: why do I have to double up? The control char must still be echoing something?
+        [:cursor_backward, :cursor_backward, "  ", :cursor_backward, :cursor_backward]
+        |> ANSI.format()
+        |> IO.write()
+
+        %WIO{state | buffer: List.first(buffer, [])}
+
       10 ->
         send(caller, {:keyboard_input, IO.chardata_to_string(buffer)})
         %WIO{state | buffer: [], prompt_state: :not_prompting}
