@@ -52,13 +52,13 @@ defmodule Weaver.TUI.IO do
   #
 
   @impl true
-  def handle_call({:output, item}, _from, state = %WIO{prompt_state: :not_prompting}),
+  def handle_call({:output, item}, _, state = %WIO{prompt_state: :not_prompting}),
     do: {:reply, IO.puts(item), state}
 
   @impl true
   def handle_call(
         {:output, item},
-        _from,
+        _,
         state = %WIO{prompt_state: :prompting, prompt: prompt, buffer: buffer}
       ) do
     # TODO: handle more than one line of prompt
@@ -99,7 +99,7 @@ defmodule Weaver.TUI.IO do
   defp handle_char(c, state = %WIO{buffer: buffer, caller: caller}) do
     case c do
       10 ->
-        send(caller, {:keyboard_input, IO.iodata_to_binary(buffer)})
+        send(caller, {:keyboard_input, IO.chardata_to_string(buffer)})
         %WIO{state | buffer: [], prompt_state: :not_prompting}
 
       c ->
