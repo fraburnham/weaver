@@ -162,22 +162,36 @@ defmodule Weaver.TUI do
   # private
   #
 
+  @type t :: %TUI{show_thinking: boolean(), total_tokens: non_neg_integer() | nil}
+
+  @type msg :: %{
+          role: String.t(),
+          content: String.t() | nil,
+          thinking: String.t() | nil,
+          tool_calls: [map()] | nil,
+          resume: boolean() | nil
+        }
+
+  @spec header :: :ok
   defp header do
     [:bright, "\nType '/exit' to quit"]
     |> ANSI.format()
     |> IO.puts()
   end
 
+  @spec prompt(msg) :: :ok | nil
   defp prompt(msg) do
     if not Map.has_key?(msg, :tool_calls) do
       prompt()
     end
   end
 
+  @spec prompt :: :ok
   defp prompt do
     send(__MODULE__, :prompt)
   end
 
+  @spec show_thinking(boolean(), msg) :: :ok | nil
   defp show_thinking(true, %{thinking: thinking}) do
     [:faint, :cyan, "\n", thinking, "\n"]
     |> ANSI.format()
@@ -186,6 +200,7 @@ defmodule Weaver.TUI do
 
   defp show_thinking(_, _), do: nil
 
+  @spec show_content(msg) :: :ok | nil
   defp show_content(%{content: ""}), do: nil
 
   defp show_content(%{content: content}) when not is_nil(content) do
@@ -195,25 +210,27 @@ defmodule Weaver.TUI do
 
   defp show_content(_), do: nil
 
+  @spec show_tool_calls(msg) :: :ok | nil
   defp show_tool_calls(%{tool_calls: tool_calls}) do
     [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
     |> ANSI.format()
     |> IO.puts()
   end
 
-  defp show_tool_calls(_), do: nil
-
+  @spec exit :: no_return()
   defp exit do
     System.stop(0)
     Process.sleep(:infinity)
   end
 
+  @spec clear :: :ok
   defp clear do
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
     # TODO: don't show here. It'll happen by message.
     prompt()
   end
 
+  @spec resume :: :ok
   defp resume do
     Elixir.IO.write("\n")
 
@@ -225,6 +242,7 @@ defmodule Weaver.TUI do
     prompt()
   end
 
+  @spec compact :: :ok
   defp compact do
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :compact)
   end
@@ -245,6 +263,7 @@ defmodule Weaver.TUI do
   # TODO: /clear-to-last-prompt
 
   # If the user input wasn't a slash command broadcast it
+  @spec user_input(String.t()) :: :ok
   defp user_input(content) do
     Phoenix.PubSub.broadcast(Weaver.PubSub, "messages", %{
       role: "user",
