@@ -1,4 +1,5 @@
 defmodule Weaver.TUI.ANSI.Macros do
+  @spec build_commands(Macro.t()) :: Macro.t()
   defmacro build_commands(commands) do
     Enum.map(commands, fn
       {command_name, {fmt, default}} ->
@@ -49,11 +50,13 @@ defmodule Weaver.TUI.ANSI do
     delete_characters: {"\e[#{args}P", 1}
   )
 
+  @spec format(list()) :: IO.chardata()
   def format(commands) when is_list(commands) do
     Enum.map(commands, &format(&1))
     |> IO.ANSI.format()
   end
 
+  @spec format(atom()) :: IO.chardata() | atom()
   def format(command) when is_atom(command) do
     if function_exported?(__MODULE__, command, 0) do
       apply(__MODULE__, command, [])
@@ -62,6 +65,7 @@ defmodule Weaver.TUI.ANSI do
     end
   end
 
+  @spec format({atom(), any()}) :: IO.chardata() | atom()
   def format({command, args}) when is_atom(command) do
     if function_exported?(__MODULE__, command, 1) do
       apply(__MODULE__, command, [args])
@@ -70,5 +74,6 @@ defmodule Weaver.TUI.ANSI do
     end
   end
 
+  @spec format(any()) :: any()
   def format(passthrough), do: passthrough
 end
