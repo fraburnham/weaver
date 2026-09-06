@@ -2,7 +2,9 @@ defmodule Weaver.TUI.Term do
   @on_load :load_nifs
 
   def load_nifs do
-    :erlang.load_nif("priv/term", 0)
+    # TODO: pull from config
+    {:ok, weaver_dir} = System.fetch_env("WEAVER_DIR")
+    :erlang.load_nif("#{weaver_dir}/priv/term", 0)
   end
 
   def set_config(_config), do: :erlang.nif_error(:nif_not_loaded)
