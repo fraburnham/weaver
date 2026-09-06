@@ -9,7 +9,6 @@ defmodule Weaver.Application do
   alias Weaver.Tools
   alias Weaver.LLM
   alias Weaver.TUI
-  alias Weaver.TUI.IO, as: WeaverIO
   alias Weaver.Personas
 
   @impl true
@@ -51,7 +50,6 @@ defmodule Weaver.Application do
                {:model_options, model_options}
                | Application.get_env(:weaver, :llm, [])
              ])},
-            {WeaverIO, %{}},
             {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
           ]
       end

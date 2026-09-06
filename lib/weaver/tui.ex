@@ -13,6 +13,8 @@ defmodule Weaver.TUI do
   require Weaver.TUI.SlashCommands
   alias Weaver.TUI
   alias Weaver.TUI.SlashCommands
+  alias Weaver.TUI.IO
+  alias Weaver.TUI.ANSI
 
   defstruct show_thinking: false, total_tokens: nil
 
@@ -25,6 +27,8 @@ defmodule Weaver.TUI do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "metrics")
+
+    {:ok, _} = IO.start_link(%IO{})
 
     header()
     prompt()
@@ -71,10 +75,19 @@ defmodule Weaver.TUI do
          @prompt_color,
          "> "
        ])
-    |> IO.ANSI.format()
-    |> IO.gets()
-    |> String.trim()
-    |> user_input()
+    |> ANSI.format()
+    |> IO.prompt()
+
+    # To make life _fun_ the prompt is async. Weaver.TUI.IO handles it and output so that things stay in
+    # sync with a little less fuss. A {:keyboard_input, input} message will come when the user presses enter
+
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:keyboard_input, input}, state) do
+    String.trim(input)
+    |> user_input
 
     # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
 
@@ -99,7 +112,7 @@ defmodule Weaver.TUI do
   @impl true
   def handle_info(%{role: "user", content: content, resume: true}, config = %TUI{}) do
     [@prompt_color, "\n> ", :light_white, content]
-    |> IO.ANSI.format()
+    |> ANSI.format()
     |> IO.puts()
 
     {:noreply, config}
@@ -147,7 +160,7 @@ defmodule Weaver.TUI do
 
   defp header do
     [:bright, "\nType '/exit' to quit"]
-    |> IO.ANSI.format()
+    |> ANSI.format()
     |> IO.puts()
   end
 
@@ -163,7 +176,7 @@ defmodule Weaver.TUI do
 
   defp show_thinking(true, %{thinking: thinking}) do
     [:faint, :cyan, "\n", thinking, "\n"]
-    |> IO.ANSI.format()
+    |> ANSI.format()
     |> IO.puts()
   end
 
@@ -180,7 +193,7 @@ defmodule Weaver.TUI do
 
   defp show_tool_calls(%{tool_calls: tool_calls}) do
     [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
-    |> IO.ANSI.format()
+    |> ANSI.format()
     |> IO.puts()
   end
 
@@ -198,7 +211,7 @@ defmodule Weaver.TUI do
   end
 
   defp resume do
-    IO.write("\n")
+    Elixir.IO.write("\n")
 
     Weaver.History.sessions()
     |> Enum.each(fn filename ->
