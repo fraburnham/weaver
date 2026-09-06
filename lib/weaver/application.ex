@@ -39,18 +39,17 @@ defmodule Weaver.Application do
       {Tools, struct!(Tools, Application.get_env(:weaver, :tools))},
       {LLM,
        struct!(LLM, [
-             {:model, model},
-             {:api, api},
-             {:system_prompt, system_prompt},
-             {:tools_available, tools_available},
-             {:model_options, model_options}
-             | Application.get_env(:weaver, :llm, [])
-           ])},
+         {:model, model},
+         {:api, api},
+         {:system_prompt, system_prompt},
+         {:tools_available, tools_available},
+         {:model_options, model_options}
+         | Application.get_env(:weaver, :llm, [])
+       ])},
       {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
     ]
     |> Enum.filter(fn {module, _} ->
       module in Application.get_env(:weaver, :processes)
     end)
-
   end
 end
