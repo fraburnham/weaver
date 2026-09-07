@@ -56,8 +56,6 @@ defmodule Weaver.CLI do
     String.trim(input)
     |> user_input
 
-    # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
-
     {:noreply, state}
   end
 
@@ -239,7 +237,7 @@ defmodule Weaver.CLI do
   @spec clear :: :ok
   defp clear do
     Phoenix.PubSub.broadcast(Weaver.PubSub, "commands", :clear)
-    # TODO: don't show here. It'll happen by message.
+
     prompt()
   end
 
@@ -272,8 +270,6 @@ defmodule Weaver.CLI do
      ]},
     {"/compact", [do: compact(), help: "Compact this session to reclaim context."]}
   ])
-
-  # TODO: /clear-to-last-prompt
 
   # If the user input wasn't a slash command broadcast it
   @spec user_input(String.t()) :: :ok

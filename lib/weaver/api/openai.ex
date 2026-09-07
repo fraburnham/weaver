@@ -12,7 +12,6 @@ defmodule Weaver.Api.OpenAI do
 
   @behaviour Weaver.Api
 
-  # TODO: region from config
   @base_uri "https://bedrock-mantle.us-east-1.api.aws/openai"
 
   @impl true
@@ -20,8 +19,6 @@ defmodule Weaver.Api.OpenAI do
 
   @impl true
   def chat(context) do
-    # TODO: this can use a short term secret. should be generating it here, too
-    # (but the UI one is 12h which is both short and long enough)
     %{api_key: api_key, project: project} =
       Application.get_env(:weaver, :openai) |> Enum.into(%{})
 
@@ -35,8 +32,6 @@ defmodule Weaver.Api.OpenAI do
       ]
       |> Keyword.merge(Application.get_env(:weaver, :openai_req_options, []))
 
-    # TODO: track prompt_cache_key!
-    # TODO: support reasoning_effort
     %{
       choices: [%{message: message}],
       usage: %{prompt_tokens: input_tokens, total_tokens: total_tokens}

@@ -42,16 +42,12 @@ defmodule Weaver.CLI.IO do
       | c_lflag: set_flag(c_lflag, :ICANON, false) |> set_flag(:ECHOCTL, false)
     })
 
-    # TODO: know size of terminal and get notified/check for updates (eventually)
-    # Know the length of the prompt when it comes in. Use all that to know how many lines to clear
-
     {:ok,
      %WIO{state | buffer: [], original_term_config: term_config, prompt_state: :not_prompting}}
   end
 
   @impl true
   def terminate(_, %WIO{original_term_config: term_config}) do
-    # TODO: This needs to be in a monitor or something. Lots of reasons to not gracefully stop a genserver...
     Term.set_config(term_config)
   end
 
@@ -83,7 +79,6 @@ defmodule Weaver.CLI.IO do
         _,
         state = %WIO{prompt_state: :prompting, prompt: prompt, buffer: buffer}
       ) do
-    # TODO: handle more than one line of prompt
     output = [:line_erase_all, item, "\n", prompt, buffer]
 
     {:reply, IO.write(output), state}
@@ -131,7 +126,6 @@ defmodule Weaver.CLI.IO do
     case c do
       c when c in [127, 8] ->
         # backspace
-        # TODO: why do I have to double up? The control char must still be echoing something?
         [:cursor_backward, :cursor_backward, "  ", :cursor_backward, :cursor_backward]
         |> ANSI.format()
         |> IO.write()

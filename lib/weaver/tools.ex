@@ -112,7 +112,7 @@ defmodule Weaver.Tools do
       Enum.map(tool_calls, fn tool_call ->
         call_id = Map.get(tool_call, :id)
         name = tool_call[:function][:name]
-        # TODO: Schema check the function call
+
         %{
           id: call_id,
           role: "tool",

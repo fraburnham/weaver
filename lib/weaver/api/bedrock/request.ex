@@ -26,7 +26,6 @@ defmodule Weaver.Api.Bedrock.Request do
 
   @impl true
   def handle_info(:update_credentials, %Request{credential_process: credential_process}) do
-    # TODO: set the refresh
     {:noreply, update_credentials(credential_process)}
   end
 
@@ -40,7 +39,6 @@ defmodule Weaver.Api.Bedrock.Request do
           session_token: session_token
         }
       ) do
-    # TODO: handle expired creds
     {:reply,
      [
        access_key_id: access_key_id,
@@ -66,7 +64,6 @@ defmodule Weaver.Api.Bedrock.Request do
     |> Enum.into([])
     |> Enum.filter(fn chunk ->
       case chunk do
-        # TODO: ignoring the exit status is sloppy
         {:exit, {:status, _}} -> false
         _ -> true
       end

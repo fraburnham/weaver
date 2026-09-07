@@ -121,7 +121,6 @@ defmodule Weaver.Api.Anthropic do
 
     %{system: system, messages: messages} = isolate_system_prompt(messages)
 
-    # TODO: region from config
     {:ok,
      %{
        content: blocks,
