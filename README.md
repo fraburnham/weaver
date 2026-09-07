@@ -1,177 +1,72 @@
 # Weaver
 
-Agent tui and framework
+Agent framework and cli.
 
-## Components
+## CLI
 
-### Phoenix.PubSub
+Run `./weaver` after setting the config options to use `weaver` as an interactive cli tool.
 
-Phoenix.PubSub is the messaging bus that connects all components. The goal is to allow the individual components to respond to each message as is appropriate.
+### Config
 
-#### `"messages"`
+Api modules may require additional configuration.
 
-```elixir
-%{
-  role: "user" | "assistant" | "tool" | "system",
-  content: String.t(),
-  tool_calls: [
-    %{
-      id: String.t(),
-      type: "function",
-      function: %{name: String.t(), arguments: map()}
-    } | []
-  ],
-  resume: false # When `true` this message is being replayed from history
-}
-```
+| ENV Var | Description | Default |
+|---|---|---|
+| `WEAVER_PERSONA` | The [persona](#personas) to use with `weaver`. | |
+| `WEAVER_PERSONAS_BASE_DIR` | The directory that has personas. | |
+| `WEAVER_TOOLS_BASE_DIR` | The directory that has `STDIO` [tools](#tools). | |
+| `WEAVER_HISTORY_BASE_DIR` | The directory for `Weaver.History` to output jsonl files. | `.weaver/history` |
+| `WEAVER_SHOW_THINKING` | Show thinking output in the TUI or not. | `"yes"` |
 
-#### `"commands"`
+## Framework
 
-| Event | Description |
-|-------|-------------|
-| `:clear` | Empty and re-initalize context |
-| `:compact` | Compact the current context |
-| `{:resume, command}` | A command being replayed will be in a tuple like this |
-| `:resume_end` | A resume message replay has ended |
+As a framework `weaver`'s goal is to be very flexible. To achieve that all core communication happens over `Phoenix.PubSub` so that process can choose what to consume and how to deal with the messages.
 
-#### `"metrics"`
+### `Phoenix.PubSub`
 
-| Metric | Description |
-| `{:total_tokens, total_tokens}` | Total tokens currently consumed by the context |
+There are three topics that a process can subscribe to: 
 
-### DynamicSupervisor
+* `"messages"`
+  * Where each message in the agent's conversation is broadcast.
+* `"commands"`
+  * Where commands (like `:clear` and `:compact`) are broadcast.
+* `"metrics"`
+  * Where token usage metrics are broadcast.
+  
+The types for each are on `Weaver`.
 
-`DynamicSupervisor` manages additional supervised processes when the framework is used as a TUI. It allows APIs and tools to add processes to the supervision tree.
+### Processes
 
-### History
-
-`History` writes conversation messages to JSONL (JSON Lines) files for persistence.
-
-#### Config
+The processes that `weaver` starts can be configured like
 
 ```elixir
 config :weaver,
-  history: [base_dir: "/path/to/history/files"]
-```
-
-| Key | Description |
-|-----|-------------|
-| `:base_dir` | The directory where history files are stored (default: `.weaver/history/`) |
-
-### Tools
-
-`Tools` manages tool execution and responses and can call tools via a STDIO interface or behaviour.
-
-#### STDIO Interface
-
-A STDIO tool requires:
-- A `definition.json` file in the tool's directory
-- A `run` executable/script that accepts JSON input via STDIN
-- Output to STDIO is sent to the llm verbatim
-- The tool's path will be built like `<weaver.tools.base_dir>/<tool name>/`
-
-#### Behaviour
-
-An elixir tool must implement the `Weaver.Tool` behaviour.
-
-#### Config
-
-```elixir
-config :weaver,
-  tools: [
-    base_dir: "/path/to/tools",
-    tool_modules: %{"tool-name" => Elixir.Module}
+  processes: [
+    DynamicSupervisor,
+    Phoenix.PubSub,
+    Weaver.History,
+    Weaver.Tools,
+    Weaver.LLM,
+    Weaver.CLI
   ]
 ```
 
-| Key | Description |
-|-----|-------------|
-| `:base_dir` | The directory containing STDIO tools |
-| `:tool_modules` | A map of tool names to elixir modules |
+Omitting a process from this list will prevent it from starting so that you can start another process instead (or none at all). See `config/test.exs` for an example. See `Weaver.Application` for a complete list of processes.
 
-### Personas
+## Tools
 
-A persona is built from a `persona.json` and a `PERSONA.md` in a directory named for the persona.
+Tools can be implemented against the `STDIO` interface or as Elixir modules. Some `STDIO` tools can be found in `tools/`. See `Weaver.Tools` for more details.
 
-#### `persona.json`
+## Personas
 
-```json
-{
-    "model": "model-name-or-id",
-    "api": "Api.Module.Name",
-    "context_window": 128000,
-    "tools": [
-        "list",
-        "of",
-        "tools",
-        "model",
-        "can",
-        "use"
-    ]
-}
+A persona is a directory with `PERSONA.md` and `persona.json` files that describe it. Some default personas can be found in `personas/`. See `Weaver.Personas` for more details.
+
+```text
+${WEAVER_PERSONAS_BASE_DIR}/
+├── <persona-name>
+│   ├── persona.json
+│   ├── PERSONA.md
+└── <persona-name>
+    ├── persona.json
+    └── PERSONA.md
 ```
-
-| Key | Description |
-|-----|-------------|
-| `"model"` | The name or id of the model in a format that the api client can use |
-| `"api"` | The elixir module to use as the api backend that implements the `Weaver.Api` behaviour |
-| `"context_window"` | The maximum number of tokens the context is allowed to use |
-| `"tools"` | A list of tool names this persona is allowed to call |
-
-#### `PERSONA.md`
-
-The `PERSONA.md` file is used as the system prompt. It can be empty.
-
-#### Config
-
-```elixir
-config :weaver,
-  personas: [
-    base_dir: "/path/to/persona/dirs",
-    name: "name-of-the-persona-to-use"
-  ]
-```
-
-| Key | Description |
-|-----|-------------|
-| `:base_dir` | The base directory to search for personas |
-| `:name` | The name of the persona must match its dirname in the personas base dir |
-
-### LLM
-
-`LLM` ties together the API and messages topic by:
-- Maintaining conversation context with system prompt and message history
-- Calling the API for each llm turn
-- Broadcasting responses to all subscribers
-
-#### Config
-
-```elixir
-config :weaver,
-  llm: [api: Elixir.Module.That.Implements.Weaver.Api]
-```
-
-| Key | Description |
-|-----|-------------|
-| `:llm` | An elixir module that implements the `Weaver.Api` behaviour |
-
-### TUI
-
-`TUI` handles displaying messages to the user:
-- Shows thinking content in cyan
-- Displays chat responses using Marcli for markdown formatting
-- Lists tool calls in yellow
-- Handles prompt for user input
-- Recognizes slash commands
-
-#### Config
-
-The `TUI` module expects:
-```elixir
-config :weaver,
-  tui: [show_thinking: true]
-```
-
-| Key | Description |
-|-----|-------------|
-| `:show_thinking` | Whether to show thinking content (does not enable or disable thinking) |
