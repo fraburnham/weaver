@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.40.4">
+    <meta name="project" content="weaver v0.1.0">
+
+
+    <title>Weaver — weaver v0.1.0</title>
+
+    <link rel="stylesheet" href="dist/html-elixir-RXHHCTJW.css" />
+
+    <script defer src="dist/sidebar_items-20E991F5.js"></script>
+    <script defer src="docs_config.js"></script>
+    <script defer src="dist/html-MI33G4N7.js"></script>
+
+  </head>
+  <body>
+    <script>(()=>{var t="ex_doc:settings",e="dark";var o="dark",s="light";var E="sidebar_state",n="closed";var r="sidebar_width";var a="sidebar-open";var i=new URLSearchParams(window.location.search),S=i.get("theme")||JSON.parse(localStorage.getItem(t)||"{}").theme;(S===o||S!==s&&window.matchMedia("(prefers-color-scheme: dark)").matches)&&document.body.classList.add(e);var d=sessionStorage.getItem(E),A=d!==n&&!window.matchMedia(`screen and (max-width: ${768}px)`).matches;document.body.classList.toggle(a,A);var c=sessionStorage.getItem(r);c&&document.body.style.setProperty("--sidebarWidth",`${c}px`);var p=/(Macintosh|iPhone|iPad|iPod)/.test(window.navigator.userAgent);document.documentElement.classList.toggle("apple-os",p);})();
+</script>
+
+<div class="body-wrapper">
+
+<button id="sidebar-menu" class="sidebar-button sidebar-toggle" aria-label="toggle sidebar" aria-controls="sidebar">
+  <i class="ri-menu-line ri-lg" title="Collapse/expand sidebar"></i>
+</button>
+
+<nav id="sidebar" class="sidebar">
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectInfo">
+
+      <div>
+        <a href="readme.html" class="sidebar-projectName" translate="no">
+weaver
+        </a>
+        <div class="sidebar-projectVersion" translate="no">
+          v0.1.0
+        </div>
+      </div>
+    </div>
+    <ul id="sidebar-list-nav" class="sidebar-list-nav" role="tablist" data-extras="Pages"></ul>
+  </div>
+</nav>
+
+<output role="status" id="toast"></output>
+
+<main class="content page-extra" id="main" data-type="extras">
+  <div id="content" class="content-inner">
+    <div class="top-search">
+      <div class="search-settings">
+        <form class="search-bar" action="search.html">
+          <label class="search-label">
+            <span class="sr-only">Search documentation of weaver</span>
+            <div class="search-input-wrapper">
+              <input name="q" type="text" class="search-input" placeholder="Press / to search" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+              <button type="button" tabindex="-1" class="search-close-button" aria-hidden="true">
+                <i class="ri-close-line ri-lg" title="Cancel search"></i>
+              </button>
+            </div>
+          </label>
+        </form>
+        <div class="autocomplete">
+        </div>
+        <div class="engine-selector" data-multiple="false">
+          <button type="button" class="engine-button" aria-label="Select search engine" aria-haspopup="true" aria-expanded="false">
+            <i class="ri-search-2-line" aria-hidden="true"></i>
+            <span class="engine-name">Default</span>
+            <i class="ri-arrow-down-s-line" aria-hidden="true"></i>
+          </button>
+          <div class="engine-dropdown" hidden role="menu">
+
+              <button type="button"
+                      class="engine-option"
+                      data-engine-url="search.html?q="
+                      role="menuitemradio"
+                      aria-checked="true">
+                <span class="name">Default</span>
+                <span class="help">In-browser search</span>
+              </button>
+
+          </div>
+        </div>
+        <button class="icon-settings display-settings">
+          <i class="ri-settings-3-line"></i>
+          <span class="sr-only">Settings</span>
+        </button>
+      </div>
+    </div>
+
+<div id="top-content">
+  <div class="heading-with-actions top-heading">
+    <h1>Weaver</h1>
+
+<a href="readme.md" title="Copy Markdown (hold Ctrl/Cmd and click it to open as Markdown)" class="copy-markdown icon-action" rel="help">
+  <i class="ri-markdown-line" aria-hidden="true"></i>
+  <span class="sr-only">Copy Markdown</span>
+</a>
+
+
+      <a href="https://github.com/fraburnham/weaver/blob/main/README.md#L1" title="View Source" class="icon-action" rel="help nofollow">
+        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+        <span class="sr-only">View Source</span>
+      </a>
+
+  </div>
+
+
+<p>Agent framework and cli.</p><h2 id="cli" class="section-heading"><a href="#cli" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">CLI</span></h2><p>Run <code class="inline">./weaver</code> after setting the config options to use <code class="inline">weaver</code> as an interactive cli tool.</p><h3 id="config" class="section-heading"><a href="#config" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Config</span></h3><p>Api modules may require additional configuration.</p><table><thead><tr><th style="text-align: left;">ENV Var</th><th style="text-align: left;">Description</th><th style="text-align: left;">Default</th></tr></thead><tbody><tr><td style="text-align: left;"><code class="inline">WEAVER_PERSONA</code></td><td style="text-align: left;">The <a href="#personas">persona</a> to use with <code class="inline">weaver</code>.</td><td style="text-align: left;"></td></tr><tr><td style="text-align: left;"><code class="inline">WEAVER_PERSONAS_BASE_DIR</code></td><td style="text-align: left;">The directory that has personas.</td><td style="text-align: left;"></td></tr><tr><td style="text-align: left;"><code class="inline">WEAVER_TOOLS_BASE_DIR</code></td><td style="text-align: left;">The directory that has <code class="inline">STDIO</code> <a href="#tools">tools</a>.</td><td style="text-align: left;"></td></tr><tr><td style="text-align: left;"><code class="inline">WEAVER_HISTORY_BASE_DIR</code></td><td style="text-align: left;">The directory for <a href="Weaver.History.html"><code class="inline">Weaver.History</code></a> to output jsonl files.</td><td style="text-align: left;"><code class="inline">.weaver/history</code></td></tr><tr><td style="text-align: left;"><code class="inline">WEAVER_SHOW_THINKING</code></td><td style="text-align: left;">Show thinking output in the TUI or not.</td><td style="text-align: left;"><code class="inline">&quot;yes&quot;</code></td></tr></tbody></table><h2 id="framework" class="section-heading"><a href="#framework" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Framework</span></h2><p>As a framework <code class="inline">weaver</code>'s goal is to be very flexible. To achieve that all core communication happens over <a href="https://phoenix-pubsub.hexdocs.pm/2.2.0/Phoenix.PubSub.html"><code class="inline">Phoenix.PubSub</code></a> so that process can choose what to consume and how to deal with the messages.</p><h3 id="phoenix-pubsub" class="section-heading"><a href="#phoenix-pubsub" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text"><a href="https://phoenix-pubsub.hexdocs.pm/2.2.0/Phoenix.PubSub.html"><code class="inline">Phoenix.PubSub</code></a></span></h3><p>There are three topics that a process can subscribe to: </p><ul><li><code class="inline">&quot;messages&quot;</code><ul><li>Where each message in the agent's conversation is broadcast.</li></ul></li><li><code class="inline">&quot;commands&quot;</code><ul><li>Where commands (like <code class="inline">:clear</code> and <code class="inline">:compact</code>) are broadcast.</li></ul></li><li><code class="inline">&quot;metrics&quot;</code><ul><li>Where token usage metrics are broadcast.</li></ul></li></ul><p>The types for each are on <a href="Weaver.html"><code class="inline">Weaver</code></a>.</p><h3 id="processes" class="section-heading"><a href="#processes" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Processes</span></h3><p>The processes that <code class="inline">weaver</code> starts can be configured like</p><pre><code class="makeup elixir" translate="no"><span class="n">config</span><span class="w"> </span><span class="ss">:weaver</span><span class="p">,</span><span class="w">
+  </span><span class="ss">processes</span><span class="p">:</span><span class="w"> </span><span class="p" data-group-id="group-1">[</span><span class="w">
+    </span><span class="nc">DynamicSupervisor</span><span class="p">,</span><span class="w">
+    </span><span class="nc">Phoenix.PubSub</span><span class="p">,</span><span class="w">
+    </span><span class="nc">Weaver.History</span><span class="p">,</span><span class="w">
+    </span><span class="nc">Weaver.Tools</span><span class="p">,</span><span class="w">
+    </span><span class="nc">Weaver.LLM</span><span class="p">,</span><span class="w">
+    </span><span class="nc">Weaver.CLI</span><span class="w">
+  </span><span class="p" data-group-id="group-1">]</span></code></pre><p>Omitting a process from this list will prevent it from starting so that you can start another process instead (or none at all). See <code class="inline">config/test.exs</code> for an example. See <a href="Weaver.Application.html"><code class="inline">Weaver.Application</code></a> for a complete list of processes.</p><h2 id="tools" class="section-heading"><a href="#tools" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Tools</span></h2><p>Tools can be implemented against the <code class="inline">STDIO</code> interface or as Elixir modules. Some <code class="inline">STDIO</code> tools can be found in <code class="inline">tools/</code>. See <a href="Weaver.Tools.html"><code class="inline">Weaver.Tools</code></a> for more details.</p><h2 id="personas" class="section-heading"><a href="#personas" class="hover-link"><i class="ri-link-m" aria-hidden="true"></i></a><span class="text">Personas</span></h2><p>A persona is a directory with <code class="inline">PERSONA.md</code> and <code class="inline">persona.json</code> files that describe it. Some default personas can be found in <code class="inline">personas/</code>. See <a href="Weaver.Personas.html"><code class="inline">Weaver.Personas</code></a> for more details.</p><pre><code class="text">${WEAVER_PERSONAS_BASE_DIR}/
+├── &lt;persona-name&gt;
+│   ├── persona.json
+│   ├── PERSONA.md
+└── &lt;persona-name&gt;
+    ├── persona.json
+    └── PERSONA.md</code></pre>
+
+</div>
+
+<div class="bottom-actions" id="bottom-actions">
+  <div class="bottom-actions-item">
+
+  </div>
+  <div class="bottom-actions-item">
+
+  </div>
+</div>
+    <footer class="footer">
+
+        <p>
+
+          <span class="line">
+            <button class="a-main footer-button display-quick-switch" title="Go to package docs">
+              Go to package docs
+            </button>
+
+              <a href="llms.txt" target="_blank">
+                View llms.txt
+              </a>
+
+
+          </span>
+        </p>
+
+        <p class="built-using">
+          Built using
+          <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener" translate="no">ExDoc</a> (v0.40.4) for the
+
+            <a href="https://elixir-lang.org" title="Elixir" target="_blank" translate="no">Elixir programming language</a>
+
+        </p>
+
+
+    </footer>
+  </div>
+</main>
+</div>
+
+  </body>
+</html>
