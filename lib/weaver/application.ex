@@ -1,6 +1,6 @@
 defmodule Weaver.Application do
   @moduledoc """
-  The entrypoint for the cli application
+  The entrypoint for the application
   """
 
   use Application

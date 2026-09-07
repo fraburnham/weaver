@@ -1,4 +1,11 @@
 defmodule Weaver.TUI.IO do
+  @moduledoc """
+  Allows the user prompt to be handled async. Relies on `Weaver.TUI.Term` for configuring the terminal.
+
+  The standard `IO` moudle should not be used when using `Weaver.TUI.IO`. In order for this module to
+  keep the prompt at the bottom of the display no other process can write to stdout.
+  """
+
   use GenServer
 
   import Bitwise
@@ -142,9 +149,24 @@ defmodule Weaver.TUI.IO do
   # public api
   #
 
+  @doc """
+  Write to stdout like IO.puts/2.
+
+  This will interrupt any prompt (if it is collecting input) so that output can be displayed
+  then the prompt will be displayed again after the output.
+  """
   @spec puts(IO.chardata()) :: :ok
   def puts(item), do: GenServer.call(__MODULE__, {:output, item})
 
-  @spec prompt(IO.chardata()) :: :ok | {:error, :not_prompting | :prompting}
+  @doc """
+  Display a prompt collecting keyboard input until enter is pressed.
+
+  Once the user presses enter a message will be sent to the caller like
+  ```elixir
+  {:keyboard_input, String.t()}
+  ```
+  and polling will be stopped.
+  """
+  @spec prompt(IO.chardata()) :: :ok | {:error, :prompting}
   def prompt(p), do: GenServer.call(__MODULE__, {:prompt, p})
 end

@@ -15,8 +15,15 @@ defmodule Weaver.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      compilers: [:term] ++ Mix.compilers()
-      # https://github.com/burrito-elixir/burrito <- this is probalby better for the release
+      compilers: [:term] ++ Mix.compilers(),
+      docs: [
+        name: "Weaver",
+        source_url: "https://github.com/fraburnham/weaver",
+        formatters: ["html", "markdown"],
+        description: "An LLM agent framework and TUI",
+        extras: ["README.md"],
+        main: "readme"
+      ]
     ]
   end
 
@@ -32,6 +39,8 @@ defmodule Weaver.MixProject do
     [
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false, warn_if_outdated: true},
+      {:makeup_html, ">= 0.0.0", only: :dev, runtime: false},
       {:phoenix_pubsub, "~> 2.0"},
       {:marcli, "~> 0.3.1"},
       {:makeup_syntect, "~> 0.1.4"},

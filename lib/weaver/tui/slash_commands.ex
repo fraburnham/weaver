@@ -1,4 +1,11 @@
 defmodule Weaver.TUI.SlashCommands do
+  @moduledoc """
+  Helpers for `Weaver.TUI` slash commands like /exit, /clear, etc.
+  """
+
+  @doc """
+  Displays all the slash commands and their help strings
+  """
   def help(commands) do
     IO.write("\n")
 

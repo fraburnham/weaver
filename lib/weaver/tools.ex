@@ -14,6 +14,25 @@ defmodule Weaver.Tools do
   that implement the `Weaver.Tools.Tool` behaviour. It broadcasts a list of tool response
   messages to the `"messages"` topic, or broadcasts to `"commands"` if a terminal tool
   call is encountered.
+
+  #### STDIO Interface
+
+  A STDIO tool requires:
+  - A `definition.json` file in the tool's directory
+  - A `run` executable/script that accepts JSON input via STDIN
+  - Output to STDIO is sent to the llm verbatim
+  - The tool's path will be built like `<weaver.tools.base_dir>/<tool name>/`
+
+  #### Behaviour
+
+  An elixir tool must implement the `Weaver.Tool` behaviour.
+
+  #### Config
+
+  | Key | Description |
+  |-----|-------------|
+  | `:base_dir` | The directory containing STDIO tools |
+  | `:tool_modules` | A map of tool names to elixir modules |
   """
   use GenServer
 

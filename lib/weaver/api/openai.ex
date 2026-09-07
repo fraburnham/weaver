@@ -1,4 +1,8 @@
 defmodule Weaver.Api.OpenAI do
+  @moduledoc """
+  Client for OpenAI apis
+  """
+
   @behaviour Weaver.Api
 
   # TODO: region from config

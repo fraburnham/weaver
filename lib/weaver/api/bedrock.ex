@@ -1,6 +1,6 @@
 defmodule Weaver.Api.Bedrock do
   @moduledoc """
-  Client for AWS Bedrock api
+  Client for AWS Bedrock api. Built on https://ex-aws-bedrock.hexdocs.pm/ExAws.Bedrock.html
   """
 
   @behaviour Weaver.Api

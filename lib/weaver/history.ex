@@ -7,20 +7,17 @@ defmodule Weaver.History do
   Each new conversation or resume creates a new file with an ISO 8601 timestamp.
   The file descriptor is properly closed when the server terminates.
 
+  ## Config
+
+  | Key | Description |
+  |-----|-------------|
+  | `:base_dir` | The directory where history files are stored (default: `.weaver/history/`) |
+
   ## History Resumption
 
   Use `resume/1` to replay messages from a previous session file. This broadcasts
   all messages back to the `"messages"` topic and commands to the `"commands"` topic,
   allowing other components to reconstruct their state.
-
-  ## Examples
-
-      iex> Weaver.History.resume("2025-01-15T10:30:00.000000Z.jsonl")
-      :ok
-
-      iex> Weaver.History.sessions()
-      ["2025-01-14T09:00:00.000000Z.jsonl", "2025-01-15T10:30:00.000000Z.jsonl"]
-
   """
 
   use GenServer
@@ -187,12 +184,6 @@ defmodule Weaver.History do
   Broadcasts all messages to the `"messages"` topic and commands to the `"commands"` topic
   with a `resume: true` flag. After completion, broadcasts `:resume_end` and initializes
   a new history file for the resumed conversation.
-
-  ## Examples
-
-      iex> Weaver.History.resume("2025-01-15T10:30:00.000000Z.jsonl")
-      :ok
-
   """
   @spec resume(String.t()) :: :ok
   def resume(history_file) do
@@ -202,12 +193,6 @@ defmodule Weaver.History do
   @doc """
   Resumes a previous conversation by replaying messages from the given history file
   on the specified process.
-
-  ## Examples
-
-      iex> Weaver.History.resume("2025-01-15T10:30:00.000000Z.jsonl", pid)
-      :ok
-
   """
   @spec resume(String.t(), GenServer.server()) :: :ok
   def resume(history_file, pid) do
@@ -218,12 +203,6 @@ defmodule Weaver.History do
   Lists all available history sessions (JSONL files).
 
   Returns a sorted list of history file names.
-
-  ## Examples
-
-      iex> Weaver.History.sessions()
-      ["2025-01-14T09:00:00.000000Z.jsonl", "2025-01-15T10:30:00.000000Z.jsonl"]
-
   """
   @spec sessions() :: [String.t()]
   def sessions do
@@ -232,12 +211,6 @@ defmodule Weaver.History do
 
   @doc """
   Lists all available history sessions (JSONL files) from the specified process.
-
-  ## Examples
-
-      iex> Weaver.History.sessions(pid)
-      ["2025-01-14T09:00:00.000000Z.jsonl", "2025-01-15T10:30:00.000000Z.jsonl"]
-
   """
   @spec sessions(GenServer.server()) :: [String.t()]
   def sessions(pid) do

@@ -1,15 +1,21 @@
 defmodule Weaver.TUI.ANSI.Macros do
-  @spec build_commands(Macro.t()) :: Macro.t()
+  @moduledoc """
+  Helpers to reduce boilerplate for handling ANSI control sequences
+  """
+
   defmacro build_commands(commands) do
     Enum.map(commands, fn
       {command_name, {fmt, default}} ->
         quote do
+          @spec unquote(command_name)() :: binary()
           def unquote(command_name)(), do: unquote(command_name)(unquote(default))
+          @spec unquote(command_name)(number() | tuple()) :: binary()
           def unquote(command_name)(unquote(Macro.var(:args, nil))), do: unquote(fmt)
         end
 
       {command_name, fmt} ->
         quote do
+          @spec unquote(command_name)() :: binary()
           def unquote(command_name)(), do: unquote(fmt)
         end
     end)
@@ -19,6 +25,8 @@ end
 defmodule Weaver.TUI.ANSI do
   @moduledoc """
   ANSI control sequences not provided by IO.ANSI
+
+  ## References
 
   https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
   https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
@@ -50,6 +58,16 @@ defmodule Weaver.TUI.ANSI do
     delete_characters: {"\e[#{args}P", 1}
   )
 
+  @doc """
+  Use `format/1` like [`IO.ANSI.format/2`](https://elixir.hexdocs.pm/1.20.4/IO.ANSI.html#format/2). Calls
+  IO.ANSI so all escapes supported there can be used here.
+
+  ```elixir
+  [:display_erase_all, {:cursor_position, {10, 10}}, :red, "Hello world!"]
+  |> Weaver.TUI.ANSI.format()
+  |> IO.puts()
+  ```
+  """
   @spec format(list()) :: IO.chardata()
   def format(commands) when is_list(commands) do
     Enum.map(commands, &format(&1))

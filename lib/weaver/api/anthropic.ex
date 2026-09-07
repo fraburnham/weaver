@@ -1,4 +1,7 @@
 defmodule Weaver.Api.Anthropic do
+  @moduledoc """
+  Client for anthropic messages api. Built on https://anthropix.hexdocs.pm/Anthropix.html
+  """
   @behaviour Weaver.Api
 
   defstruct api_key: nil,

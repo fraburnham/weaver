@@ -1,4 +1,8 @@
 defmodule Weaver.TUI.Term do
+  @moduledoc """
+  A terminal config and input library that is ligher than ratatui and more configurable than terminfo.
+  """
+
   @on_load :load_nifs
 
   def load_nifs do
