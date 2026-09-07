@@ -74,7 +74,6 @@ defmodule Weaver.Api.Bedrock do
            |> Weaver.Api.Bedrock.Request.request() do
         {:ok, response} ->
           response
-          |> Atomize.map_keys()
           |> tool_call_decoder.()
       end
 
