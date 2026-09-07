@@ -1,4 +1,4 @@
-defmodule Weaver.TUI.ANSI.Macros do
+defmodule Weaver.CLI.ANSI.Macros do
   @moduledoc """
   Helpers to reduce boilerplate for handling ANSI control sequences
   """
@@ -22,7 +22,7 @@ defmodule Weaver.TUI.ANSI.Macros do
   end
 end
 
-defmodule Weaver.TUI.ANSI do
+defmodule Weaver.CLI.ANSI do
   @moduledoc """
   ANSI control sequences not provided by IO.ANSI
 
@@ -32,7 +32,7 @@ defmodule Weaver.TUI.ANSI do
   https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
   """
 
-  import Weaver.TUI.ANSI.Macros
+  import Weaver.CLI.ANSI.Macros
 
   build_commands(
     insert_blank: {"\e[#{args}@", 1},
@@ -64,7 +64,7 @@ defmodule Weaver.TUI.ANSI do
 
   ```elixir
   [:display_erase_all, {:cursor_position, {10, 10}}, :red, "Hello world!"]
-  |> Weaver.TUI.ANSI.format()
+  |> Weaver.CLI.ANSI.format()
   |> IO.puts()
   ```
   """

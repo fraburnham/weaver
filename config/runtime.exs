@@ -27,7 +27,7 @@ config :weaver,
   tools: [
     base_dir: System.get_env("WEAVER_TOOLS_BASE_DIR")
   ],
-  tui: [
+  cli: [
     show_thinking:
       if System.get_env("WEAVER_SHOW_THINKING", "no") == "yes" do
         true

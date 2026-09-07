@@ -20,7 +20,7 @@ defmodule Weaver.MixProject do
         name: "Weaver",
         source_url: "https://github.com/fraburnham/weaver",
         formatters: ["html", "markdown"],
-        description: "An LLM agent framework and TUI",
+        description: "An LLM agent framework and CLI",
         extras: ["README.md"],
         main: "readme"
       ]

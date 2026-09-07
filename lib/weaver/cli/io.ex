@@ -1,17 +1,17 @@
-defmodule Weaver.TUI.IO do
+defmodule Weaver.CLI.IO do
   @moduledoc """
-  Allows the user prompt to be handled async. Relies on `Weaver.TUI.Term` for configuring the terminal.
+  Allows the user prompt to be handled async. Relies on `Weaver.CLI.Term` for configuring the terminal.
 
-  The standard `IO` moudle should not be used when using `Weaver.TUI.IO`. In order for this module to
+  The standard `IO` moudle should not be used when using `Weaver.CLI.IO`. In order for this module to
   keep the prompt at the bottom of the display no other process can write to stdout.
   """
 
   use GenServer
 
   import Bitwise
-  alias Weaver.TUI.Term
-  alias Weaver.TUI.IO, as: WIO
-  alias Weaver.TUI.ANSI
+  alias Weaver.CLI.Term
+  alias Weaver.CLI.IO, as: WIO
+  alias Weaver.CLI.ANSI
 
   defstruct caller: nil,
             buffer: [],

@@ -154,7 +154,7 @@ static ErlNifFunc nif_funcs[] = {{"get_flag_values", 0, get_flag_values},
                                  {"get_config", 0, get_config},
                                  {"attempt_read", 0, attempt_read}};
 
-ERL_NIF_INIT(Elixir.Weaver.TUI.Term, nif_funcs, NULL, NULL, NULL, NULL)
+ERL_NIF_INIT(Elixir.Weaver.CLI.Term, nif_funcs, NULL, NULL, NULL, NULL)
 
 // gcc -fPIC -I/home/fraburnham/.asdf/installs/erlang/29.0.4/usr/include
 // -dynamiclib -undefined dynamic_lookup -o term.so term.c ^ I have a feeling

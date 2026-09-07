@@ -1,6 +1,6 @@
-defmodule Weaver.TUI.SlashCommands do
+defmodule Weaver.CLI.SlashCommands do
   @moduledoc """
-  Helpers for `Weaver.TUI` slash commands like /exit, /clear, etc.
+  Helpers for `Weaver.CLI` slash commands like /exit, /clear, etc.
   """
 
   @doc """
@@ -33,7 +33,7 @@ defmodule Weaver.TUI.SlashCommands do
       unquote_splicing(slash_command_handlers)
 
       defp user_input("/help") do
-        Weaver.TUI.SlashCommands.help(unquote(escaped_commands))
+        Weaver.CLI.SlashCommands.help(unquote(escaped_commands))
 
         # Don't really like that this is across modules...
         prompt()

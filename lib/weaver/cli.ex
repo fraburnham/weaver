@@ -1,6 +1,6 @@
-defmodule Weaver.TUI do
+defmodule Weaver.CLI do
   @moduledoc """
-  `Weaver.TUI` handles displaying messages to the user in the terminal.
+  `Weaver.CLI` handles displaying messages to the user in the terminal.
 
   It subscribes to the `"messages"` Phoenix.PubSub topic and renders conversation
   messages with appropriate formatting. Thinking content is shown in cyan, chat
@@ -10,15 +10,15 @@ defmodule Weaver.TUI do
   """
 
   use GenServer
-  require Weaver.TUI.SlashCommands
-  alias Weaver.TUI
-  alias Weaver.TUI.SlashCommands
-  alias Weaver.TUI.IO
-  alias Weaver.TUI.ANSI
+  require Weaver.CLI.SlashCommands
+  alias Weaver.CLI
+  alias Weaver.CLI.SlashCommands
+  alias Weaver.CLI.IO
+  alias Weaver.CLI.ANSI
 
   defstruct show_thinking: false, total_tokens: nil
 
-  @type t :: %TUI{
+  @type t :: %CLI{
           show_thinking: boolean(),
           total_tokens: non_neg_integer() | nil
         }
@@ -28,7 +28,7 @@ defmodule Weaver.TUI do
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config = %TUI{}) do
+  def init(config = %CLI{}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "commands")
     Phoenix.PubSub.subscribe(Weaver.PubSub, "metrics")
@@ -59,10 +59,10 @@ defmodule Weaver.TUI do
   # "commands" handling
   #
 
-  # Terminal tools don't make sense to me when the TUI is in use
+  # Terminal tools don't make sense to me when the CLI is in use
   @impl true
   def handle_info({:termminal_tool_call, _}, _),
-    do: raise("Terminal tool called while using TUI!")
+    do: raise("Terminal tool called while using CLI!")
 
   @impl true
   def handle_info(:resume_end, state) do
@@ -78,7 +78,7 @@ defmodule Weaver.TUI do
 
   # Display a prompt and broadcast the user input
   @impl true
-  def handle_info(:prompt, state = %TUI{total_tokens: total_tokens}) do
+  def handle_info(:prompt, state = %CLI{total_tokens: total_tokens}) do
     (if total_tokens do
        [
          :faint,
@@ -97,15 +97,15 @@ defmodule Weaver.TUI do
     |> ANSI.format()
     |> IO.prompt()
 
-    # To make life _fun_ the prompt is async. Weaver.TUI.IO handles it and output so that things stay in
+    # To make life _fun_ the prompt is async. Weaver.CLI.IO handles it and output so that things stay in
     # sync with a little less fuss. A {:keyboard_input, input} message will come when the user presses enter
 
     {:noreply, state}
   end
 
   @impl true
-  def handle_info(:clear, state = %TUI{}) do
-    {:noreply, %TUI{state | total_tokens: nil}}
+  def handle_info(:clear, state = %CLI{}) do
+    {:noreply, %CLI{state | total_tokens: nil}}
   end
 
   # Ignore unknown commands
@@ -120,7 +120,7 @@ defmodule Weaver.TUI do
 
   @impl true
   @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
-  def handle_info(%{role: "user", content: content, resume: true}, config = %TUI{}) do
+  def handle_info(%{role: "user", content: content, resume: true}, config = %CLI{}) do
     [@prompt_color, "\n> ", :light_white, content]
     |> ANSI.format()
     |> IO.puts()
@@ -130,7 +130,7 @@ defmodule Weaver.TUI do
 
   @impl true
   @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
-  def handle_info(msg = %{role: "assistant", resume: true}, config = %TUI{}) do
+  def handle_info(msg = %{role: "assistant", resume: true}, config = %CLI{}) do
     show_thinking(config.show_thinking, msg)
     show_content(msg)
     show_tool_calls(msg)
@@ -141,7 +141,7 @@ defmodule Weaver.TUI do
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
   @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
-  def handle_info(msg = %{role: "assistant"}, config = %TUI{}) do
+  def handle_info(msg = %{role: "assistant"}, config = %CLI{}) do
     show_thinking(config.show_thinking, msg)
     show_content(msg)
     show_tool_calls(msg)
@@ -152,14 +152,14 @@ defmodule Weaver.TUI do
 
   @impl true
   @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
-  def handle_info(%{role: _}, state = %TUI{}) do
+  def handle_info(%{role: _}, state = %CLI{}) do
     {:noreply, state}
   end
 
   # A list of messages is always tool call responses. Don't need to show that in the UI.
   @impl true
   @spec handle_info(list(Weaver.message()), t()) :: {:noreply, t()}
-  def handle_info([%{role: _} | _], state = %TUI{}) do
+  def handle_info([%{role: _} | _], state = %CLI{}) do
     {:noreply, state}
   end
 
@@ -168,7 +168,7 @@ defmodule Weaver.TUI do
   #
 
   @impl true
-  def handle_info(%{total_tokens: total_tokens}, state = %TUI{}) do
+  def handle_info(%{total_tokens: total_tokens}, state = %CLI{}) do
     {:noreply, %{state | total_tokens: total_tokens}}
   end
 

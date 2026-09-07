@@ -8,7 +8,7 @@ config :weaver,
     Weaver.History,
     Weaver.Tools,
     Weaver.LLM,
-    Weaver.TUI
+    Weaver.CLI
   ]
 
 import_config "#{config_env()}.exs"

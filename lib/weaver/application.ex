@@ -8,7 +8,7 @@ defmodule Weaver.Application do
   alias Weaver.History
   alias Weaver.Tools
   alias Weaver.LLM
-  alias Weaver.TUI
+  alias Weaver.CLI
   alias Weaver.Personas
 
   @impl true
@@ -46,7 +46,7 @@ defmodule Weaver.Application do
          {:model_options, model_options}
          | Application.get_env(:weaver, :llm, [])
        ])},
-      {TUI, struct!(TUI, Application.get_env(:weaver, :tui))}
+      {CLI, struct!(CLI, Application.get_env(:weaver, :cli))}
     ]
     |> Enum.filter(fn {module, _} ->
       module in Application.get_env(:weaver, :processes)
