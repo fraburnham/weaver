@@ -1,6 +1,13 @@
 defmodule Weaver.Api.Anthropic do
   @moduledoc """
   Client for anthropic messages api. Built on https://anthropix.hexdocs.pm/Anthropix.html
+
+  ## Config
+
+  | Key | Description | Default |
+  |---|---|---|
+  | `:project` | Project id for accounting/tracking. | Pulled from `WEAVER_ANTHROPIC_PROJECT` |
+  | `:api_key` | Key for authenticating with anthropic api. | Pulled from `WEAVER_ANTHROPIC_API_KEY` |
   """
   @behaviour Weaver.Api
 

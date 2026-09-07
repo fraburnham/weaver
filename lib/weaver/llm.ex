@@ -7,10 +7,7 @@ defmodule Weaver.LLM do
   - Calling the API for each LLM turn
   - Broadcasting responses to all subscribers
 
-  ## Configuration
-
-      config :weaver,
-        llm: [api: Elixir.Module.That.Implements.Weaver.Api]
+  ## Config
 
   | Key | Description |
   |-----|------|

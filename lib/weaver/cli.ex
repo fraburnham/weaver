@@ -7,6 +7,12 @@ defmodule Weaver.CLI do
   responses are displayed using Marcli for markdown formatting, and tool calls
   are listed in yellow. The module handles user prompts and recognizes slash
   commands for quitting or other special operations.
+
+  ## Config
+
+  | Key | Description | Default |
+  |---|---|---|
+  | :show_thinking | Show thinking output from assistant messages or not | `false` |
   """
 
   use GenServer

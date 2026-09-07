@@ -1,6 +1,12 @@
 defmodule Weaver.Api.Bedrock do
   @moduledoc """
   Client for AWS Bedrock api. Built on https://ex-aws-bedrock.hexdocs.pm/ExAws.Bedrock.html
+
+  ## Config
+
+  | Key | Description | Default |
+  |---|---|---|
+  | `:credential_process` | A function that takes zero arguments and returns aws credentials. | |
   """
 
   @behaviour Weaver.Api

@@ -1,6 +1,12 @@
 defmodule Weaver.Api.Ollama do
   @moduledoc """
   Ollama api client
+
+  ## Config
+
+  | Key | Description | Default |
+  |---|---|---|
+  | `:base_url` | Ollama backend url (without `/api/chat`). | Pulled from `WEAVER_OLLAMA_BASE_URL` |
   """
 
   @behaviour Weaver.Api

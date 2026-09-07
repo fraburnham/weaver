@@ -1,6 +1,13 @@
 defmodule Weaver.Api.OpenAI do
   @moduledoc """
   Client for OpenAI apis
+
+  ## Config
+
+  | Key | Description | Default |
+  |---|---|---|
+  | `:project` | Project id for accounting/tracking. | Pulled from `WEAVER_OPENAI_PROJECT` |
+  | `:api_key` | Key for authenticating with openai api. | Pulled from `WEAVER_OPENAI_API_KEY` |
   """
 
   @behaviour Weaver.Api

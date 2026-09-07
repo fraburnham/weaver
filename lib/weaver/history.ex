@@ -9,9 +9,9 @@ defmodule Weaver.History do
 
   ## Config
 
-  | Key | Description |
-  |-----|-------------|
-  | `:base_dir` | The directory where history files are stored (default: `.weaver/history/`) |
+  | Key | Description | Default |
+  |-----|-------------|---------|
+  | `:base_dir` | The directory where history files are stored | `.weaver/history/` |
 
   ## History Resumption
 

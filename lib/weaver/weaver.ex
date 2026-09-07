@@ -1,4 +1,19 @@
 defmodule Weaver do
+  @moduledoc """
+  Agent framework and cli.
+
+  ## Config
+
+  | Key | Description | Default |
+  |---|---|---|
+  | `:cli` | `Weaver.CLI` config options | |
+  | `:history` | `Weaver.History` config options | |
+  | `:personas` | `Weaver.Personas` config options | |
+  | `:processes` | List of process name (atoms) to start when `Weaver` starts | See `config/config.exs` |
+  | `:pubsub` | `Phoenix.PubSub` name atom. | `Weaver.PubSub` |
+  | `:tools` | `Weaver.Tools` config options | |
+  """
+
   @type tool_call :: %{
           function: %{
             optional(:description) => String.t(),
