@@ -1,6 +1,6 @@
 # Weaver
 
-Agent framework and cli.
+Agent framework and cli. [Read the docs](https://n8git.dev/weaver).
 
 ## CLI
 
