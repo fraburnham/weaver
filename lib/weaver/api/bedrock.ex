@@ -92,7 +92,7 @@ defmodule Weaver.Api.BedrockMock do
 
   @behaviour Weaver.Api
 
-  def start_link(), do: {:ok, nil}
+  def start_link(), do: :ignore
 
   def chat(req = %{messages: messages}) do
     tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)

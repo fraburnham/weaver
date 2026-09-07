@@ -55,12 +55,20 @@ defmodule Weaver.Personas do
 
   @type t :: %Personas{base_dir: String.t(), name: String.t()}
 
+  @type model_options :: %{
+          optional(:context_window) => non_neg_integer(),
+          optional(:output_tokens) => non_neg_integer(),
+          optional(:temperature) => float(),
+          optional(:top_p) => float(),
+          optional(:top_k) => non_neg_integer()
+        }
+
   @spec system_prompt(t()) :: String.t()
   def system_prompt(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "PERSONA.md"]) |> Path.expand())
   end
 
-  @spec tools_available(t()) :: list()
+  @spec tools_available(t()) :: [String.t()]
   def tools_available(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
     |> Jason.decode!(keys: :atoms)
@@ -76,7 +84,7 @@ defmodule Weaver.Personas do
     {model, Module.concat([api])}
   end
 
-  @spec model_options(t()) :: map()
+  @spec model_options(t()) :: model_options()
   def model_options(%Personas{base_dir: base_dir, name: persona}) do
     File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
     |> Jason.decode!(keys: :atoms)

@@ -31,12 +31,19 @@ defmodule Weaver.LLM do
             total_tokens: nil,
             skip_init: false
 
+  @type context :: %{
+          optional(:options) => Weaver.Personas.model_options(),
+          optional(:messages) => list(Weaver.message()),
+          optional(:tools) => [Weaver.Tools.definition()] | nil,
+          model: String.t()
+        }
+
   @type t :: %LLM{
-          model: String.t() | nil,
-          model_options: map(),
-          api: module() | nil,
+          model: String.t(),
+          model_options: Weaver.Personas.model_options(),
+          api: module(),
           api_pid: pid() | nil,
-          context: map() | nil,
+          context: context() | nil,
           system_prompt: String.t() | nil,
           tools_available: list() | nil,
           total_tokens: integer() | nil,
@@ -61,6 +68,7 @@ defmodule Weaver.LLM do
       case api.start_link() do
         {:ok, pid} -> pid
         {:error, {:already_started, pid}} -> pid
+        :ignore -> nil
       end
 
     {:noreply, %LLM{config | api_pid: pid}}
@@ -182,7 +190,7 @@ defmodule Weaver.LLM do
   end
 
   # Send a request to the api (using an api module)
-  @spec request(t()) :: map()
+  @spec request(t()) :: Weaver.Api.response()
   defp request(%LLM{context: context, api: api}) do
     context
     |> context_to_api_context()
@@ -190,7 +198,7 @@ defmodule Weaver.LLM do
   end
 
   # Add a message to the context
-  @spec add_message(t(), map()) :: t()
+  @spec add_message(t(), Weaver.message()) :: t()
   defp add_message(state = %LLM{}, msg) do
     %LLM{state | context: %{state.context | messages: [msg | state.context[:messages]]}}
   end
@@ -200,12 +208,12 @@ defmodule Weaver.LLM do
     %LLM{state | total_tokens: total_tokens}
   end
 
-  @spec context_to_api_context(map()) :: map()
+  @spec context_to_api_context(context()) :: context()
   defp context_to_api_context(context) do
     %{context | messages: Enum.reverse(context[:messages])}
   end
 
-  @spec initial_context(t()) :: map()
+  @spec initial_context(t()) :: context()
   defp initial_context(%LLM{
          model: model,
          system_prompt: system_prompt,
@@ -223,12 +231,7 @@ defmodule Weaver.LLM do
       model: model,
       messages: [system_prompt],
       tools: Tools.get_tool_definitions(tools_available),
-      options:
-        Map.drop(model_options, [:context_window, :output_tokens])
-        |> Map.merge(%{
-          num_ctx: model_options[:context_window],
-          num_predict: model_options[:output_tokens]
-        })
+      options: model_options
     }
   end
 end

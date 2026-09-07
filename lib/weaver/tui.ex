@@ -18,6 +18,11 @@ defmodule Weaver.TUI do
 
   defstruct show_thinking: false, total_tokens: nil
 
+  @type t :: %TUI{
+          show_thinking: boolean(),
+          total_tokens: non_neg_integer() | nil
+        }
+
   @prompt_color :light_red
 
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
@@ -34,6 +39,20 @@ defmodule Weaver.TUI do
     prompt()
 
     {:ok, config}
+  end
+
+  #
+  # IO messages
+  #
+
+  @impl true
+  def handle_info({:keyboard_input, input}, state) do
+    String.trim(input)
+    |> user_input
+
+    # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
+
+    {:noreply, state}
   end
 
   #
@@ -85,16 +104,6 @@ defmodule Weaver.TUI do
   end
 
   @impl true
-  def handle_info({:keyboard_input, input}, state) do
-    String.trim(input)
-    |> user_input
-
-    # TODO: handle input failure (like bad slash commands) in here so prompt triggering is private
-
-    {:noreply, state}
-  end
-
-  @impl true
   def handle_info(:clear, state = %TUI{}) do
     {:noreply, %TUI{state | total_tokens: nil}}
   end
@@ -110,6 +119,7 @@ defmodule Weaver.TUI do
   #
 
   @impl true
+  @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
   def handle_info(%{role: "user", content: content, resume: true}, config = %TUI{}) do
     [@prompt_color, "\n> ", :light_white, content]
     |> ANSI.format()
@@ -119,6 +129,7 @@ defmodule Weaver.TUI do
   end
 
   @impl true
+  @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
   def handle_info(msg = %{role: "assistant", resume: true}, config = %TUI{}) do
     show_thinking(config.show_thinking, msg)
     show_content(msg)
@@ -129,6 +140,7 @@ defmodule Weaver.TUI do
 
   # A message from the assistant without any tool calls means the assistant is ready for user input again
   @impl true
+  @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
   def handle_info(msg = %{role: "assistant"}, config = %TUI{}) do
     show_thinking(config.show_thinking, msg)
     show_content(msg)
@@ -139,12 +151,14 @@ defmodule Weaver.TUI do
   end
 
   @impl true
+  @spec handle_info(Weaver.message(), t()) :: {:noreply, t()}
   def handle_info(%{role: _}, state = %TUI{}) do
     {:noreply, state}
   end
 
   # A list of messages is always tool call responses. Don't need to show that in the UI.
   @impl true
+  @spec handle_info(list(Weaver.message()), t()) :: {:noreply, t()}
   def handle_info([%{role: _} | _], state = %TUI{}) do
     {:noreply, state}
   end
@@ -162,16 +176,6 @@ defmodule Weaver.TUI do
   # private
   #
 
-  @type t :: %TUI{show_thinking: boolean(), total_tokens: non_neg_integer() | nil}
-
-  @type msg :: %{
-          role: String.t(),
-          content: String.t() | nil,
-          thinking: String.t() | nil,
-          tool_calls: [map()] | nil,
-          resume: boolean() | nil
-        }
-
   @spec header :: :ok
   defp header do
     [:bright, "\nType '/exit' to quit"]
@@ -179,7 +183,7 @@ defmodule Weaver.TUI do
     |> IO.puts()
   end
 
-  @spec prompt(msg) :: :ok | nil
+  @spec prompt(Weaver.message()) :: :ok | nil
   defp prompt(msg) do
     if not Map.has_key?(msg, :tool_calls) do
       prompt()
@@ -191,7 +195,7 @@ defmodule Weaver.TUI do
     send(__MODULE__, :prompt)
   end
 
-  @spec show_thinking(boolean(), msg) :: :ok | nil
+  @spec show_thinking(boolean(), Weaver.message()) :: :ok | nil
   defp show_thinking(true, %{thinking: thinking}) do
     [:faint, :cyan, "\n", thinking, "\n"]
     |> ANSI.format()
@@ -200,7 +204,7 @@ defmodule Weaver.TUI do
 
   defp show_thinking(_, _), do: nil
 
-  @spec show_content(msg) :: :ok | nil
+  @spec show_content(Weaver.message()) :: :ok | nil
   defp show_content(%{content: ""}), do: nil
 
   defp show_content(%{content: content}) when not is_nil(content) do
@@ -210,7 +214,7 @@ defmodule Weaver.TUI do
 
   defp show_content(_), do: nil
 
-  @spec show_tool_calls(msg) :: :ok | nil
+  @spec show_tool_calls(Weaver.message()) :: :ok | nil
   defp show_tool_calls(%{tool_calls: tool_calls}) do
     [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
     |> ANSI.format()

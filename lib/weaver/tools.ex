@@ -1,9 +1,10 @@
 defmodule Weaver.Tools.Tool do
   @moduledoc """
-  A behaviour for implementing elixir module based tools
+  A behaviour for implementing tools as elixir modules
   """
-  @callback run(tool_call :: map) :: binary
-  @callback definition() :: map
+
+  @callback run(tool_call :: Weaver.tool_call()) :: binary
+  @callback definition() :: Weaver.Tools.definition()
 end
 
 defmodule Weaver.Tools do
@@ -48,11 +49,20 @@ defmodule Weaver.Tools do
           tool_modules: map()
         }
 
-  @spec start_link(t()) :: GenServer.on_start()
+  @type json_schema :: map()
+
+  @type definition :: %{
+          type: String.t(),
+          function: %{
+            name: String.t(),
+            description: String.t(),
+            parameters: json_schema()
+          }
+        }
+
   def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  @spec init(t()) :: {:ok, t()}
   def init(config = %Tools{base_dir: _}) do
     Phoenix.PubSub.subscribe(Weaver.PubSub, "messages")
 
@@ -64,8 +74,6 @@ defmodule Weaver.Tools do
   #
 
   @impl true
-  @spec handle_call({:get_tool_definitions, list()}, GenServer.from(), t()) ::
-          {:reply, list(), t()}
   def handle_call(
         {:get_tool_definitions, tools},
         _from,
@@ -89,14 +97,12 @@ defmodule Weaver.Tools do
 
   # Tools don't need to be handled during resume
   @impl true
-  @spec handle_info(map(), t()) :: {:noreply, t()}
   def handle_info(%{resume: true}, config) do
     {:noreply, config}
   end
 
   # Call tools
   @impl true
-  @spec handle_info(map(), t()) :: {:noreply, t()}
   def handle_info(
         %{role: role, tool_calls: tool_calls},
         config = %Tools{tool_definitions: tool_definitions}
@@ -141,13 +147,11 @@ defmodule Weaver.Tools do
   end
 
   @impl true
-  @spec handle_info(map(), t()) :: {:noreply, t()}
   def handle_info(%{role: _}, config) do
     {:noreply, config}
   end
 
   @impl true
-  @spec handle_info(list(), t()) :: {:noreply, t()}
   def handle_info([%{role: _} | _], config) do
     {:noreply, config}
   end
@@ -156,7 +160,7 @@ defmodule Weaver.Tools do
   # private
   #
 
-  @spec get_stdio_tool_definition(String.t(), String.t()) :: map()
+  @spec get_stdio_tool_definition(String.t(), String.t()) :: definition()
   defp get_stdio_tool_definition(base_dir, tool) do
     [base_dir, tool, "definition.json"]
     |> Path.join()
@@ -165,7 +169,7 @@ defmodule Weaver.Tools do
     |> Jason.decode!(keys: :atoms)
   end
 
-  @spec call_stdio_tool(String.t(), String.t(), map()) :: String.t()
+  @spec call_stdio_tool(String.t(), String.t(), Weaver.tool_call()) :: String.t()
   defp call_stdio_tool(base_dir, name, tool_call) do
     tool =
       [
@@ -189,7 +193,7 @@ defmodule Weaver.Tools do
     |> IO.iodata_to_binary()
   end
 
-  @spec call_tool(t(), String.t(), map()) :: String.t()
+  @spec call_tool(t(), String.t(), Weaver.tool_call()) :: String.t()
   defp call_tool(%Tools{base_dir: base_dir, tool_modules: tool_modules}, name, tool_call) do
     if Map.has_key?(tool_modules, name) do
       tool_modules[name].run(tool_call)
@@ -209,7 +213,7 @@ defmodule Weaver.Tools do
   module, its `c:Weaver.Tools.Tool.definition/0` callback is invoked. Otherwise,
   the definition is loaded from the tool's `definition.json` file via the STDIO interface.
   """
-  @spec get_tool_definitions(list()) :: list()
+  @spec get_tool_definitions([String.t()]) :: [definition()]
   def get_tool_definitions(tools) do
     GenServer.call(__MODULE__, {:get_tool_definitions, tools})
   end

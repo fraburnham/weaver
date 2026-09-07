@@ -105,7 +105,12 @@ defmodule Weaver.TUI.IO do
   # private
   #
 
-  @spec set_flag(bitfield :: non_neg_integer(), flag :: atom(), enabled :: boolean(), flag_mapping :: map()) :: non_neg_integer()
+  @spec set_flag(
+          bitfield :: non_neg_integer(),
+          flag :: atom(),
+          enabled :: boolean(),
+          flag_mapping :: map()
+        ) :: non_neg_integer()
   defp set_flag(bitfield, flag, enabled, flag_mapping) do
     flag_value = Map.get(flag_mapping, flag)
 
@@ -116,7 +121,8 @@ defmodule Weaver.TUI.IO do
     end
   end
 
-  @spec set_flag(bitfield :: non_neg_integer(), flag :: atom(), enabled :: boolean()) :: non_neg_integer()
+  @spec set_flag(bitfield :: non_neg_integer(), flag :: atom(), enabled :: boolean()) ::
+          non_neg_integer()
   defp set_flag(bitfield, flag, enabled),
     do: set_flag(bitfield, flag, enabled, Term.get_flag_values())
 

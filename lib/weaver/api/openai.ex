@@ -8,8 +8,10 @@ defmodule Weaver.Api.OpenAI do
   # TODO: region from config
   @base_uri "https://bedrock-mantle.us-east-1.api.aws/openai"
 
-  def start_link(), do: {:ok, nil}
+  @impl true
+  def start_link(), do: :ignore
 
+  @impl true
   def chat(context) do
     # TODO: this can use a short term secret. should be generating it here, too
     # (but the UI one is 12h which is both short and long enough)

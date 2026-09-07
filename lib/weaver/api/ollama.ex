@@ -7,12 +7,24 @@ defmodule Weaver.Api.Ollama do
 
   defstruct base_url: nil
 
-  def start_link(), do: {:ok, nil}
+  @impl true
+  def start_link(), do: :ignore
 
+  @impl true
   def chat(context) do
     %{base_url: base_url} = struct!(Weaver.Api.Ollama, Application.get_env(:weaver, :ollama))
 
     req_options = Application.get_env(:weaver, :req_options, [])
+
+    context =
+      Map.put(context, :stream, false)
+      |> Map.update(:options, %{}, fn options ->
+        Map.drop(options, [:context_window, :output_tokens])
+        |> Map.merge(%{
+          num_ctx: options[:context_window],
+          num_predict: options[:output_tokens]
+        })
+      end)
 
     # TODO: use response streaming
     %{message: message, prompt_eval_count: input_tokens, eval_count: output_tokens} =
@@ -20,7 +32,7 @@ defmodule Weaver.Api.Ollama do
         %URI{URI.parse(base_url) | path: "/api/chat"},
         Keyword.merge(
           [
-            json: Map.put(context, :stream, false),
+            json: context,
             receive_timeout: :infinity,
             decoders: [json: &Jason.decode(&1, keys: :atoms)]
           ],
@@ -44,7 +56,7 @@ defmodule Weaver.Api.OllamaMock do
 
   @behaviour Weaver.Api
 
-  def start_link(), do: {:ok, nil}
+  def start_link(), do: :ignore
 
   def chat(%{messages: messages}) do
     # If the last message is a tool role then respond with a plain response

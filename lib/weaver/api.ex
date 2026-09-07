@@ -3,6 +3,12 @@ defmodule Weaver.Api do
   `Weaver.Api` is a behaviour that describes an api `Weaver.LLM` can use
   """
 
-  @callback start_link() :: tuple
-  @callback chat(context :: map) :: map
+  @type response :: %{
+          message: Weaver.message(),
+          input_tokens: non_neg_integer(),
+          total_tokens: non_neg_integer()
+        }
+
+  @callback start_link() :: GenServer.on_start()
+  @callback chat(context :: Weaver.LLM.context()) :: response()
 end

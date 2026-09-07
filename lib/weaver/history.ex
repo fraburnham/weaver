@@ -31,6 +31,7 @@ defmodule Weaver.History do
   @type config :: %History{}
   @type state :: {file_descriptor | nil, config}
   @type pubsub_name :: atom()
+  @type formatted_command :: %{command: Weaver.command()}
 
   def start_link(options) do
     config =
@@ -148,17 +149,18 @@ defmodule Weaver.History do
   # private helpers
   #
 
-  @spec update_file(file_descriptor, map()) :: :ok | {:error, Exception.t()}
+  @spec update_file(file_descriptor, Weaver.message() | formatted_command()) ::
+          :ok | {:error, Exception.t()}
   defp update_file(file_descriptor, msg) do
     IO.puts(file_descriptor, Jason.encode_to_iodata!(msg))
   end
 
-  @spec resume_line(pubsub_name, map()) :: :ok
+  @spec resume_line(pubsub_name, Weaver.message()) :: :ok
   defp resume_line(pubsub, msg = %{role: _}) do
     Phoenix.PubSub.broadcast(pubsub, "messages", msg)
   end
 
-  @spec resume_line(pubsub_name, map()) :: :ok
+  @spec resume_line(pubsub_name, formatted_command()) :: :ok
   defp resume_line(pubsub, %{command: cmd}) do
     Phoenix.PubSub.broadcast(pubsub, "commands", {:resume, String.to_atom(cmd)})
   end

@@ -7,7 +7,7 @@ defmodule Weaver.Api.Anthropic do
   defstruct api_key: nil,
             project: nil
 
-  def start_link(), do: {:ok, nil}
+  def start_link(), do: :ignore
 
   def translate_tool(%{function: %{name: name, description: description, parameters: parameters}}) do
     %{
