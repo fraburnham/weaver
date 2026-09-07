@@ -214,12 +214,15 @@ defmodule Weaver.TUI do
 
   defp show_content(_), do: nil
 
-  @spec show_tool_calls(Weaver.message()) :: :ok | nil
+  @spec show_tool_calls(Weaver.message()) :: :ok
   defp show_tool_calls(%{tool_calls: tool_calls}) do
     [:yellow, "\n", Enum.map(tool_calls, fn call -> "- #{call[:function][:name]}\n" end)]
     |> ANSI.format()
     |> IO.puts()
   end
+
+  @spec show_tool_calls(Weaver.message()) :: :ok
+  defp show_tool_calls(_), do: :ok
 
   @spec exit :: no_return()
   defp exit do
