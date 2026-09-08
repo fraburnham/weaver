@@ -1,4 +1,4 @@
-ERL_INCLUDE_PATH="/home/fraburnham/.asdf/installs/erlang/29.0.4/usr/include"
+ERL_INCLUDE_PATH ?= "$(HOME)/.asdf/installs/erlang/29.0.4/usr/include"
 
 all: priv/term.so
 

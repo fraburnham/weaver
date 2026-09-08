@@ -1,6 +1,11 @@
 defmodule Mix.Tasks.Compile.Term do
   def run(_args) do
-    {result, _errcode} = System.cmd("make", [], stderr_to_stdout: true)
+    {result, _errcode} =
+      System.cmd("make", [],
+        stderr_to_stdout: true,
+        env: [{"ERL_INCLUDE_PATH", "#{:code.root_dir()}/usr/include"}]
+      )
+
     IO.binwrite(result)
   end
 end
