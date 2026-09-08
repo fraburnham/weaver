@@ -1,5 +1,8 @@
 import Config
 
+config :ex_aws,
+  json_codec: Weaver.Api.Bedrock.Json
+
 config :weaver,
   pubsub: Weaver.PubSub,
   processes: [
