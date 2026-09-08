@@ -19,9 +19,12 @@ defmodule Weaver.Api.Bedrock do
          struct!(Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock))}
       )
 
-  def tool_call_parser(updater) do
+  def get_message_translator(updater) do
     fn req_resp ->
       parse_tool_calls(req_resp, updater)
+      |> Map.update(:messages, [], fn msgs ->
+        Enum.map(msgs, &translate_message(&1))
+      end)
     end
   end
 
@@ -40,9 +43,7 @@ defmodule Weaver.Api.Bedrock do
         :function,
         :arguments
       ],
-      fn arguments ->
-        updater.(arguments)
-      end
+      updater
     )
   end
 
@@ -56,21 +57,24 @@ defmodule Weaver.Api.Bedrock do
         end),
         :tool_calls,
         Access.all(),
-        :function
+        :function,
+        :arguments
       ],
-      fn data = %{arguments: arguments, id: id} ->
-        Map.put(data, :arguments, updater.(arguments))
-        |> Map.put(:tool_call_id, id)
-        |> Map.drop([:id])
-      end
+      updater
     )
   end
 
   def parse_tool_calls(any, _), do: any
 
+  def translate_message(msg = %{role: "tool", id: id}), do: Map.put(msg, :tool_call_id, id)
+
+  def translate_message(msg), do: msg
+
   def chat(data = %{model: model}) do
-    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
-    tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
+    tool_call_decoder =
+      Weaver.Api.Bedrock.get_message_translator(&Jason.decode!(&1, keys: :atoms))
+
+    tool_call_encoder = Weaver.Api.Bedrock.get_message_translator(&Jason.encode!/1)
 
     %{
       choices: [%{message: message}],
@@ -101,8 +105,10 @@ defmodule Weaver.Api.BedrockMock do
   def start_link(), do: :ignore
 
   def chat(req = %{messages: messages}) do
-    tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
-    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
+    tool_call_encoder = Weaver.Api.Bedrock.get_message_translator(&Jason.encode!/1)
+
+    tool_call_decoder =
+      Weaver.Api.Bedrock.get_message_translator(&Jason.decode!(&1, keys: :atoms))
 
     tool_call_encoder.(req)
 
