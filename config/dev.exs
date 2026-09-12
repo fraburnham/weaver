@@ -3,6 +3,8 @@ import Config
 defmodule Weaver.Mock do
   # @behaviour Weaver.Tools.Tool
 
+  def start_link(_), do: :ignore
+
   def run(_tool_call) do
     "Ran!"
   end

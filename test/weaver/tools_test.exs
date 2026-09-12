@@ -2,6 +2,9 @@ defmodule BroadcastTerminalMockModule do
   @behaviour Weaver.Tools.Tool
 
   @impl true
+  def start_link, do: :ignore
+
+  @impl true
   def definition() do
     %{
       type: "function",
@@ -21,6 +24,9 @@ end
 
 defmodule BroadcastNormalMockModule do
   @behaviour Weaver.Tools.Tool
+
+  @impl true
+  def start_link, do: :ignore
 
   @impl true
   def definition() do
@@ -132,6 +138,9 @@ defmodule Weaver.ToolsRetrievalTest do
         @behaviour Weaver.Tools.Tool
 
         @impl true
+        def start_link, do: :ignore
+
+        @impl true
         def definition() do
           %{
             type: "function",
@@ -168,6 +177,9 @@ defmodule Weaver.ToolsRetrievalTest do
     test "returns definitions for both STDIO and module-based tools", %{tool_dir: tool_dir} do
       defmodule MixedMockToolModule do
         @behaviour Weaver.Tools.Tool
+
+        @impl true
+        def start_link, do: :ignore
 
         @impl true
         def definition() do
@@ -229,6 +241,9 @@ defmodule Weaver.ToolsHandlingTest do
     setup do
       defmodule HandlingTestMockModule do
         @behaviour Weaver.Tools.Tool
+
+        @impl true
+        def start_link, do: :ignore
 
         @impl true
         def definition() do

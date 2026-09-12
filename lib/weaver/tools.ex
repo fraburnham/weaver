@@ -3,6 +3,7 @@ defmodule Weaver.Tools.Tool do
   A behaviour for implementing tools as elixir modules
   """
 
+  @callback start_link() :: GenServer.on_start()
   @callback run(tool_call :: Weaver.tool_call()) :: binary
   @callback definition() :: Weaver.Tools.definition()
 end
@@ -21,6 +22,7 @@ defmodule Weaver.Tools do
   A STDIO tool requires:
   - A `definition.json` file in the tool's directory
   - A `run` executable/script that accepts JSON input via STDIN
+  - An optional `init` that is called before the tool's definition is fetched
   - Output to STDIO is sent to the llm verbatim
   - The tool's path will be built like `<weaver.tools.base_dir>/<tool name>/`
 
@@ -82,8 +84,10 @@ defmodule Weaver.Tools do
     tool_definitions =
       Enum.map(tools, fn tool ->
         if Map.has_key?(tool_modules, tool) do
+          init_module_tool(tool_modules[tool])
           tool_modules[tool].definition()
         else
+          init_stdio_tool(base_dir, tool)
           get_stdio_tool_definition(base_dir, tool)
         end
       end)
@@ -167,6 +171,32 @@ defmodule Weaver.Tools do
     |> Path.expand()
     |> File.read!()
     |> Jason.decode!(keys: :atoms)
+  end
+
+  @spec init_module_tool(module()) :: :ok
+  defp init_module_tool(tool) do
+    case tool.start_link() do
+      :ignore -> :ok
+      {:ok, _} -> :ok
+    end
+  end
+
+  @spec init_stdio_tool(String.t(), String.t()) :: term()
+  defp init_stdio_tool(base_dir, tool) do
+    init =
+      [
+        [base_dir, tool, "init"]
+        |> Path.join()
+        |> Path.expand()
+      ]
+
+    if File.exists?(init) do
+      Exile.stream(init,
+        stderr: :redirect_to_stdout,
+        exit_timeout: :infinity
+      )
+      |> Enum.into([])
+    end
   end
 
   @spec call_stdio_tool(String.t(), String.t(), Weaver.tool_call()) :: String.t()
