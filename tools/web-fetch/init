@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ -n "$(docker compose -p weaver-firecrawl ps -q)" ]]; then
+  exit 0
+fi
+
+TOOLDIR="$(dirname -- "${BASH_SOURCE[0]}")"
+
+pushd "$TOOLDIR"
+git submodule update --init
+pushd "$TOOLDIR/firecrawl"
+
+if [[ ! -f ".env" ]]; then
+  cat >.env <<'EOF'
+USE_DB_AUTHENTICATION=false
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=replace-with-at-least-32-random-characters
+POSTGRES_DB=postgres
+EOF
+fi
+
+docker compose -p weaver-firecrawl up --build -d

@@ -1,0 +1,20 @@
+{
+    "type": "function",
+    "function": {
+        "name": "web-fetch",
+        "description": "Retrieve the contents of a website as markdown.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "url": {
+                    "description": "The URL of the website to scrape and return as markdown.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "url"
+            ],
+            "additionalProperties": false
+        }
+    }
+}
