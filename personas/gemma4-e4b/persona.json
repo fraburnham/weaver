@@ -1,0 +1,13 @@
+{
+    "model": "gemma4:e4b-it-bf16",
+    "api": "Weaver.Api.Ollama",
+    "context_window": 128000,
+    "tools": [
+        "store-memory",
+        "search-memory",
+        "get-memory",
+        "read-file",
+        "web-search",
+        "web-fetch"
+    ]
+}
