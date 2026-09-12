@@ -11,6 +11,6 @@
         "get-docs",
         "read-file",
         "shell-command",
-        "searxng-web-search"
+        "web-search"
     ]
 }

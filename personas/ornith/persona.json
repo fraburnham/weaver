@@ -10,6 +10,6 @@
         "write-file",
         "add-new-lines-to-file",
         "shell-command",
-        "searxng-web-search"
+        "web-search"
     ]
 }
