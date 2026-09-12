@@ -3,7 +3,7 @@ defmodule Weaver.Api.Bedrock.Json do
 
   @moduledoc false
 
-  def encode!(%{} = map) do
+  def encode!(map = %{}) do
     Jason.encode!(map)
   end
 

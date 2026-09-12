@@ -22,8 +22,10 @@ defmodule Weaver.Api.OpenAI do
     %{api_key: api_key, project: project} =
       Application.get_env(:weaver, :openai) |> Enum.into(%{})
 
-    tool_call_decoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.decode!(&1, keys: :atoms))
-    tool_call_encoder = Weaver.Api.Bedrock.tool_call_parser(&Jason.encode!/1)
+    tool_call_decoder =
+      Weaver.Api.Bedrock.get_message_translator(&Jason.decode!(&1, keys: :atoms))
+
+    tool_call_encoder = Weaver.Api.Bedrock.get_message_translator(&Jason.encode!/1)
 
     req_options =
       [

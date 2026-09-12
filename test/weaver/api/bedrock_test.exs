@@ -26,7 +26,7 @@ defmodule Weaver.Api.BedrockTest do
 
     %{
       messages: [
-        %{tool_calls: [%{function: %{arguments: actual_arguments, tool_call_id: actual_id}}]}
+        %{tool_calls: [%{function: %{arguments: actual_arguments, id: actual_id}}]}
       ]
     } =
       Weaver.Api.Bedrock.parse_tool_calls(request, &Jason.encode!/1)
