@@ -208,19 +208,24 @@ defmodule Weaver.Tools do
         |> Path.expand()
       ]
 
-    Exile.stream(tool,
-      input: [Jason.encode_to_iodata!(%{tool_call: tool_call})],
-      stderr: :redirect_to_stdout,
-      exit_timeout: :infinity
-    )
-    |> Enum.into([])
-    |> Enum.filter(fn chunk ->
-      case chunk do
-        {:exit, {:status, _}} -> false
-        _ -> true
-      end
-    end)
-    |> IO.iodata_to_binary()
+    try do
+      Exile.stream(tool,
+        input: [Jason.encode_to_iodata!(%{tool_call: tool_call})],
+        stderr: :redirect_to_stdout,
+        exit_timeout: :infinity,
+        env: [{"MIX_ENV", ""}]
+      )
+      |> Enum.into([])
+      |> Enum.filter(fn chunk ->
+        case chunk do
+          {:exit, {:status, _}} -> false
+          _ -> true
+        end
+      end)
+      |> IO.iodata_to_binary()
+    catch
+      err -> "Tool call failed: #{err}"
+    end
   end
 
   @spec call_tool(t(), String.t(), Weaver.tool_call()) :: String.t()
