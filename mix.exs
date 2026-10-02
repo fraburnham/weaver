@@ -42,6 +42,7 @@ defmodule Weaver.MixProject do
 
   defp deps do
     [
+      {:mox, "~> 1.0", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false, warn_if_outdated: true},
@@ -61,8 +62,8 @@ defmodule Weaver.MixProject do
       {:hackney, "~> 1.9"},
       {:exile, "~> 0.14"},
       {:anthropix, github: "fraburnham/anthropix", branch: "update-thinking-schema"},
-      {:mox, "~> 1.0", only: :test},
-      {:plug, "~> 1.0", only: [:dev, :test]}
+      {:plug, "~> 1.20"},
+      {:plug_cowboy, "~> 2.0"}
     ]
   end
 end
