@@ -2,6 +2,9 @@
     "model": "gemma4:e4b-it-bf16",
     "api": "Weaver.Api.Ollama",
     "context_window": 128000,
+    "temperature": 1,
+    "top_p": 0.95,
+    "top_k": 64,
     "tools": [
         "store-memory",
         "search-memory",
