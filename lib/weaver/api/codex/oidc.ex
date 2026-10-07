@@ -1,16 +1,14 @@
-defmodule Weaver.Api.OpenAI.Oidc.Plug do
+defmodule Weaver.Api.Codex.Oidc.Plug do
   @moduledoc """
   Handle the local server for oidc flow
   """
   use Plug.Router
 
-  @port 1455
-
   def start_link(),
     do:
       DynamicSupervisor.start_child(
         Weaver.DynamicSupervisor,
-        {Plug.Cowboy, plug: Weaver.Api.OpenAI.Oidc.Plug, scheme: :http, options: [port: 1455]}
+        {Plug.Cowboy, plug: Weaver.Api.Codex.Oidc.Plug, scheme: :http, options: [port: 1455]}
       )
 
   plug(:match)
@@ -18,7 +16,7 @@ defmodule Weaver.Api.OpenAI.Oidc.Plug do
   plug(:dispatch)
 
   get "/auth/callback" do
-    send(Weaver.Api.OpenAI.Oidc, {:callback, conn.query_params})
+    send(Weaver.Api.Codex.Oidc, {:callback, conn.query_params})
     send_resp(conn, 200, "You can close this tab")
   end
 
@@ -27,7 +25,7 @@ defmodule Weaver.Api.OpenAI.Oidc.Plug do
   end
 end
 
-defmodule Weaver.Api.OpenAI.Oidc do
+defmodule Weaver.Api.Codex.Oidc do
   @moduledoc """
   https://auth.openai.com/.well-known/openid-configuration
   """
@@ -49,7 +47,7 @@ defmodule Weaver.Api.OpenAI.Oidc do
   def start_link(), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
   @impl true
-  def init(config) do
+  def init(_) do
     {:ok, %__MODULE__{}}
   end
 
@@ -58,13 +56,12 @@ defmodule Weaver.Api.OpenAI.Oidc do
     code_key =
       :crypto.strong_rand_bytes(32)
       |> Base.url_encode64(padding: false)
-      |> dbg()
 
     state_id =
       :crypto.strong_rand_bytes(16)
       |> Base.url_encode64(padding: false)
 
-    {:ok, _} = Weaver.Api.OpenAI.Oidc.Plug.start_link()
+    {:ok, _} = Weaver.Api.Codex.Oidc.Plug.start_link()
     open(authorization_url(code_key, state_id))
 
     {:noreply, %__MODULE__{state | code_key: code_key, state_id: state_id}}
@@ -72,20 +69,23 @@ defmodule Weaver.Api.OpenAI.Oidc do
 
   @impl true
   def handle_info(
-        {:callback, %{"code" => code_resp, "state" => state_resp}},
-        state = %__MODULE__{reply_to: reply_to, code_key: code_key, state_id: state_id}
+        {:callback, %{"code" => code_resp, "state" => _state_resp}},
+        state = %__MODULE__{reply_to: reply_to, code_key: code_key, state_id: _state_id}
       ) do
     # TODO: confirm the states match
-    tokens = exchange_code_for_token(code_key, state_id, code_resp) |> dbg()
+    tokens = exchange_code_for_token(code_key, code_resp)
     # TODO: confirm the token is valid? Am I able to w/o a public key?
-    GenServer.reply(reply_to, tokens["access_token"]) |> dbg()
+    GenServer.reply(reply_to, tokens["access_token"])
 
     {:noreply, %__MODULE__{state | tokens: tokens}}
   end
 
   @impl true
+  def handle_call(:get_token, _, state = %__MODULE__{tokens: %{"access_token" => token}})
+      when is_binary(token), do: {:reply, token, state}
+
+  @impl true
   def handle_call(:get_token, from, state = %__MODULE__{}) do
-    # TODO! this should check if there is already a valid token and just reply with that instead (a caching updater)
     send(self(), :start_oidc)
 
     {:noreply, %__MODULE__{state | reply_to: from}}
@@ -104,7 +104,7 @@ defmodule Weaver.Api.OpenAI.Oidc do
             code_challenge: :crypto.hash(:sha256, code_key) |> Base.url_encode64(padding: false),
             code_challenge_method: "S256",
             originator: "weaver"
-          } |> dbg())
+          })
     }
     |> URI.to_string()
   end
@@ -127,18 +127,17 @@ defmodule Weaver.Api.OpenAI.Oidc do
     end)
   end
 
-  defp exchange_code_for_token(code_key, state_id, code) do
+  defp exchange_code_for_token(code_key, code) do
     # TODO: set appropriate headers
     Req.post!(
-      [ url: @token_url,
-      headers: %{"Content-Type": "application/x-www-form-urlencoded"} ],
+      [url: @token_url, headers: %{"Content-Type": "application/x-www-form-urlencoded"}],
       form: [
         grant_type: "authorization_code",
         code: code,
         redirect_uri: @callback_url,
         client_id: @client_id,
         code_verifier: code_key
-      ] |> dbg()
+      ]
     ).body
   end
 
