@@ -101,9 +101,9 @@ defmodule Weaver.Api.OpenAI.Oidc do
             redirect_uri: @callback_url,
             scope: @scopes,
             state: state_id,
-            code_challenge: :crypto.hash(:sha256, code_key) |> Base.encode16(case: :lower),
+            code_challenge: :crypto.hash(:sha256, code_key) |> Base.url_encode64(padding: false),
             code_challenge_method: "S256",
-            # originator: "weaver"
+            originator: "weaver"
           } |> dbg())
     }
     |> URI.to_string()
