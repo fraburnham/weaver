@@ -46,7 +46,7 @@ defmodule Weaver.Api.OpenAI.Oidc do
             tokens: nil,
             reply_to: nil
 
-  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
+  def start_link(), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
   @impl true
   def init(config) do
