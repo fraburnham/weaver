@@ -63,10 +63,10 @@ defmodule Weaver.LLM do
 
   @impl true
   def handle_continue(:start_api, config = %LLM{api: api}) do
-    api_config = Map.get(config, :api_config, %{})
+    api_config = Map.get(config, :api_config)
 
     pid =
-      case api.start_link(api_config) do
+      case DynamicSupervisor.start_child(Weaver.DynamicSupervisor, {api, api_config}) do
         {:ok, pid} -> pid
         {:error, {:already_started, pid}} -> pid
         :ignore -> nil

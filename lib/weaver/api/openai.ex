@@ -18,15 +18,10 @@ defmodule Weaver.Api.OpenAI do
   @behaviour Weaver.Api
 
   @impl true
-  def start_link(config),
-    do:
-      DynamicSupervisor.start_child(
-        Weaver.DynamicSupervisor,
-        {Weaver.Api.OpenAI, config}
-      )
+  def start_link(config), do: GenServer.start_link(__MODULE__, config, name: __MODULE__)
 
   @impl true
-  def init(config), do: {:ok, config, {:continue, :start_oidc}}
+  def init(config), do: {:ok, dbg(config), {:continue, :start_oidc}}
 
   @impl true
   def handle_continue(:start_oidc, config) do
@@ -39,7 +34,7 @@ defmodule Weaver.Api.OpenAI do
     %{project: project} =
       Application.get_env(:weaver, :openai) |> Enum.into(%{})
 
-    api_key = get_api_key(config)
+    api_key = get_api_key(config) |> dbg()
 
     tool_call_decoder =
       Weaver.Api.Bedrock.get_message_translator(&Jason.decode!(&1, keys: :atoms))
@@ -73,7 +68,7 @@ defmodule Weaver.Api.OpenAI do
      }, config}
   end
 
-  defp get_api_key(%{api_key: api_key}), do: api_key
+  defp get_api_key(%{api_key: api_key}) when is_binary(api_key), do: api_key
 
   defp get_api_key(_), do: Oidc.get_token()
 

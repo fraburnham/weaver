@@ -99,7 +99,7 @@ defmodule Weaver.Personas do
   def api_config(p = %Personas{}) do
     read_persona_file(p, "persona.json")
     |> Jason.decode!(keys: :atoms)
-    |> Map.take([:api_config])
+    |> Map.get(:api_config, %{})
   end
 
   defp read_persona_file(%Personas{base_dir: base_dir, name: persona}, file) do

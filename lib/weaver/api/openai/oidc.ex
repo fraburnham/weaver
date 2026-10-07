@@ -58,6 +58,7 @@ defmodule Weaver.Api.OpenAI.Oidc do
     code_key =
       :crypto.strong_rand_bytes(32)
       |> Base.url_encode64(padding: false)
+      |> dbg()
 
     state_id =
       :crypto.strong_rand_bytes(16)
@@ -75,9 +76,9 @@ defmodule Weaver.Api.OpenAI.Oidc do
         state = %__MODULE__{reply_to: reply_to, code_key: code_key, state_id: state_id}
       ) do
     # TODO: confirm the states match
-    tokens = exchange_code_for_token(code_key, state_id, code_resp)
+    tokens = exchange_code_for_token(code_key, state_id, code_resp) |> dbg()
     # TODO: confirm the token is valid? Am I able to w/o a public key?
-    GenServer.reply(reply_to, tokens["access_token"])
+    GenServer.reply(reply_to, tokens["access_token"]) |> dbg()
 
     {:noreply, %__MODULE__{state | tokens: tokens}}
   end
@@ -102,8 +103,8 @@ defmodule Weaver.Api.OpenAI.Oidc do
             state: state_id,
             code_challenge: :crypto.hash(:sha256, code_key) |> Base.encode16(case: :lower),
             code_challenge_method: "S256",
-            originator: "weaver"
-          })
+            # originator: "weaver"
+          } |> dbg())
     }
     |> URI.to_string()
   end
@@ -127,15 +128,17 @@ defmodule Weaver.Api.OpenAI.Oidc do
   end
 
   defp exchange_code_for_token(code_key, state_id, code) do
+    # TODO: set appropriate headers
     Req.post!(
-      @token_url,
+      [ url: @token_url,
+      headers: %{"Content-Type": "application/x-www-form-urlencoded"} ],
       form: [
         grant_type: "authorization_code",
         code: code,
         redirect_uri: @callback_url,
         client_id: @client_id,
         code_verifier: code_key
-      ]
+      ] |> dbg()
     ).body
   end
 
