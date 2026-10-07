@@ -123,6 +123,9 @@ defmodule Weaver.Api.Codex do
 
   defp process_event(_, acc), do: acc
 
+  # TODO: retain reasoning!!
+  defp process_item(%{"item" => %{"type" => "reasoning"}}, acc), do: acc
+
   defp process_item(%{"item" => %{"type" => "message", "content" => [content]}}, acc) do
     put_in(acc, [:message, :content], content["text"] || "")
   end
