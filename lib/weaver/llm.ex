@@ -21,6 +21,7 @@ defmodule Weaver.LLM do
   defstruct model: nil,
             model_options: %{},
             api: nil,
+            api_config: %{},
             api_pid: nil,
             context: nil,
             system_prompt: nil,
@@ -39,6 +40,7 @@ defmodule Weaver.LLM do
           model: String.t(),
           model_options: Weaver.Personas.model_options(),
           api: module(),
+          api_config: map(),
           api_pid: pid() | nil,
           context: context() | nil,
           system_prompt: String.t() | nil,
@@ -61,8 +63,10 @@ defmodule Weaver.LLM do
 
   @impl true
   def handle_continue(:start_api, config = %LLM{api: api}) do
+    api_config = Map.get(config, :api_config, %{})
+
     pid =
-      case api.start_link() do
+      case api.start_link(api_config) do
         {:ok, pid} -> pid
         {:error, {:already_started, pid}} -> pid
         :ignore -> nil

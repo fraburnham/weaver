@@ -14,7 +14,7 @@ defmodule Weaver.Api.Ollama do
   defstruct base_url: nil
 
   @impl true
-  def start_link(), do: :ignore
+  def start_link(_), do: :ignore
 
   @impl true
   def chat(context) do
@@ -61,7 +61,7 @@ defmodule Weaver.Api.OllamaMock do
 
   @behaviour Weaver.Api
 
-  def start_link(), do: :ignore
+  def start_link(_), do: :ignore
 
   def chat(%{messages: messages}) do
     # If the last message is a tool role then respond with a plain response

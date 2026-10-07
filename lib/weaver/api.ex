@@ -9,6 +9,6 @@ defmodule Weaver.Api do
           total_tokens: non_neg_integer()
         }
 
-  @callback start_link() :: GenServer.on_start()
+  @callback start_link(config :: map()) :: GenServer.on_start()
   @callback chat(context :: Weaver.LLM.context()) :: response()
 end

@@ -31,6 +31,7 @@ defmodule Weaver.Application do
     {model, api} = Personas.model(personas)
     tools_available = Personas.tools_available(personas)
     model_options = Personas.model_options(personas)
+    api_config = Personas.api_config(personas)
 
     [
       {DynamicSupervisor, name: Weaver.DynamicSupervisor, strategy: :one_for_one},
@@ -43,7 +44,8 @@ defmodule Weaver.Application do
          {:api, api},
          {:system_prompt, system_prompt},
          {:tools_available, tools_available},
-         {:model_options, model_options}
+         {:model_options, model_options},
+         {:api_config, api_config}
          | Application.get_env(:weaver, :llm, [])
        ])},
       {CLI, struct!(CLI, Application.get_env(:weaver, :cli))}

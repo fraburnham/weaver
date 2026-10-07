@@ -11,7 +11,7 @@ defmodule Weaver.LLMTest do
   defmodule MockApi do
     @behaviour Weaver.Api
 
-    def start_link() do
+    def start_link(_) do
       {:ok, self()}
     end
 
@@ -100,7 +100,7 @@ defmodule Weaver.LLMTest do
   describe "handle_continue/2" do
     test "starts the API", %{config: _config} do
       # MockApi.start_link should return {:ok, pid}
-      assert {:ok, _pid} = MockApi.start_link()
+      assert {:ok, _pid} = MockApi.start_link(nil)
     end
   end
 

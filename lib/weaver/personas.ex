@@ -10,6 +10,9 @@ defmodule Weaver.Personas do
   {
     "model": "model-name-or-id",
     "api": "Api.Module.Name",
+    "api_config": {
+      "base_url": "https://example.com"
+    }
     "context_window": 128000,
     "output_tokens": 16000,
     "temperature": 0.6,
@@ -30,6 +33,7 @@ defmodule Weaver.Personas do
   |-----|-------------|
   | `"model"` | The name or id of the model in a format that the api client can use |
   | `"api"` | The elixir module to use as the api backend that implements the `Weaver.Api` behaviour |
+  | `"api_config"` | Optional configuration for the api module |
   | `"context_window"` | The maximum number of tokens the context is allowed to use |
   | `"output_tokens"` | The maximum number of output tokens to generate |
   | `"temperature"` | Temperature value to pass to the model |
@@ -64,30 +68,41 @@ defmodule Weaver.Personas do
         }
 
   @spec system_prompt(t()) :: String.t()
-  def system_prompt(%Personas{base_dir: base_dir, name: persona}) do
-    File.read!(Path.join([base_dir, persona, "PERSONA.md"]) |> Path.expand())
+  def system_prompt(p = %Personas{}) do
+    read_persona_file(p, "PERSONA.md")
   end
 
   @spec tools_available(t()) :: [String.t()]
-  def tools_available(%Personas{base_dir: base_dir, name: persona}) do
-    File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
+  def tools_available(p = %Personas{}) do
+    read_persona_file(p, "persona.json")
     |> Jason.decode!(keys: :atoms)
     |> Map.fetch!(:tools)
   end
 
   @spec model(t()) :: {String.t(), module()}
-  def model(%Personas{base_dir: base_dir, name: persona}) do
+  def model(p = %Personas{}) do
     %{model: model, api: api} =
-      File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
+      read_persona_file(p, "persona.json")
       |> Jason.decode!(keys: :atoms)
 
     {model, Module.concat([api])}
   end
 
   @spec model_options(t()) :: model_options()
-  def model_options(%Personas{base_dir: base_dir, name: persona}) do
-    File.read!(Path.join([base_dir, persona, "persona.json"]) |> Path.expand())
+  def model_options(p = %Personas{}) do
+    read_persona_file(p, "persona.json")
     |> Jason.decode!(keys: :atoms)
     |> Map.take([:context_window, :temperature, :top_p, :top_k, :output_tokens])
+  end
+
+  @spec api_config(t()) :: map()
+  def api_config(p = %Personas{}) do
+    read_persona_file(p, "persona.json")
+    |> Jason.decode!(keys: :atoms)
+    |> Map.take([:api_config])
+  end
+
+  defp read_persona_file(%Personas{base_dir: base_dir, name: persona}, file) do
+    File.read!(Path.join([base_dir, persona, file]) |> Path.expand())
   end
 end

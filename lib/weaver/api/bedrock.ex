@@ -11,7 +11,7 @@ defmodule Weaver.Api.Bedrock do
 
   @behaviour Weaver.Api
 
-  def start_link(),
+  def start_link(_),
     do:
       DynamicSupervisor.start_child(
         Weaver.DynamicSupervisor,
@@ -102,7 +102,7 @@ defmodule Weaver.Api.BedrockMock do
 
   @behaviour Weaver.Api
 
-  def start_link(), do: :ignore
+  def start_link(_), do: :ignore
 
   def chat(req = %{messages: messages}) do
     tool_call_encoder = Weaver.Api.Bedrock.get_message_translator(&Jason.encode!/1)
