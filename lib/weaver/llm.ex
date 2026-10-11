@@ -66,7 +66,10 @@ defmodule Weaver.LLM do
     api_config = Map.get(config, :api_config)
 
     pid =
-      case DynamicSupervisor.start_child(Weaver.DynamicSupervisor, %{id: api, start: {api, :start_link, [api_config]}}) do
+      case DynamicSupervisor.start_child(Weaver.DynamicSupervisor, %{
+             id: api,
+             start: {api, :start_link, [api_config]}
+           }) do
         {:ok, pid} -> pid
         {:error, {:already_started, pid}} -> pid
         :ignore -> nil

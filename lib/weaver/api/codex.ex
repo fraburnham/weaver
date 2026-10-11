@@ -56,9 +56,13 @@ defmodule Weaver.Api.Codex do
     # TODO!! handle options
     |> Map.drop([:messages, :options])
     |> Map.put(:input, context.messages)
-    |> update_in([:tools, Access.all()], fn t ->
-      Map.drop(t, [:function])
-      |> Map.merge(t.function)
+    |> update_in([:tools], fn
+      tools when is_nil(tools) -> nil
+      tools ->
+        Enum.map(tools, fn t ->
+          Map.drop(t, [:function])
+          |> Map.merge(t.function)
+        end)
     end)
     |> update_in([:input], fn inputs ->
       List.foldr(inputs, [], fn

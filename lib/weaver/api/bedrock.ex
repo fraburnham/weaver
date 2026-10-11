@@ -13,10 +13,8 @@ defmodule Weaver.Api.Bedrock do
 
   def start_link(_),
     do:
-      DynamicSupervisor.start_child(
-        Weaver.DynamicSupervisor,
-        {Weaver.Api.Bedrock.Request,
-         struct!(Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock))}
+      Weaver.Api.Bedrock.Request.start_link(
+        struct!(Weaver.Api.Bedrock.Request, Application.get_env(:weaver, :bedrock))
       )
 
   def get_message_translator(updater) do
