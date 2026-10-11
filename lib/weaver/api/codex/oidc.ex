@@ -11,6 +11,8 @@ defmodule Weaver.Api.Codex.Oidc.Plug do
         {Plug.Cowboy, plug: Weaver.Api.Codex.Oidc.Plug, scheme: :http, options: [port: 1455]}
       )
 
+  def stop(pid), do: DynamicSupervisor.terminate_child(Weaver.DynamicSupervisor, pid)
+
   plug(:match)
   plug(:fetch_query_params)
   plug(:dispatch)
@@ -41,8 +43,10 @@ defmodule Weaver.Api.Codex.Oidc do
 
   defstruct code_key: nil,
             state_id: nil,
+            # https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.4
             tokens: nil,
-            reply_to: nil
+            reply_to: nil,
+            plug_pid: nil
 
   def start_link(), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 
@@ -53,6 +57,7 @@ defmodule Weaver.Api.Codex.Oidc do
 
   @impl true
   def handle_info(:start_oidc, state = %__MODULE__{reply_to: _}) do
+    # https://datatracker.ietf.org/doc/html/rfc7636#section-7.1
     code_key =
       :crypto.strong_rand_bytes(32)
       |> Base.url_encode64(padding: false)
@@ -61,17 +66,24 @@ defmodule Weaver.Api.Codex.Oidc do
       :crypto.strong_rand_bytes(16)
       |> Base.url_encode64(padding: false)
 
-    {:ok, _} = Weaver.Api.Codex.Oidc.Plug.start_link()
+    {:ok, plug_pid} = Weaver.Api.Codex.Oidc.Plug.start_link()
     open(authorization_url(code_key, state_id))
 
-    {:noreply, %__MODULE__{state | code_key: code_key, state_id: state_id}}
+    {:noreply, %__MODULE__{state | code_key: code_key, state_id: state_id, plug_pid: plug_pid}}
   end
 
   @impl true
   def handle_info(
         {:callback, %{"code" => code_resp, "state" => _state_resp}},
-        state = %__MODULE__{reply_to: reply_to, code_key: code_key, state_id: _state_id}
+        state = %__MODULE__{
+          reply_to: reply_to,
+          code_key: code_key,
+          state_id: _state_id,
+          plug_pid: plug_pid
+        }
       ) do
+    Weaver.Api.Codex.Oidc.Plug.stop(plug_pid)
+
     # TODO: confirm the states match
     tokens = exchange_code_for_token(code_key, code_resp)
     # TODO: confirm the token is valid? Am I able to w/o a public key?
