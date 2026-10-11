@@ -80,7 +80,7 @@ defmodule Weaver.LLM do
 
   @impl true
   def terminate(_reason, %LLM{api_pid: pid}) when is_pid(pid) do
-    GenServer.stop(pid)
+    DynamicSupervisor.terminate_child(Weaver.DynamicSupervisor, pid)
   end
 
   @impl true
