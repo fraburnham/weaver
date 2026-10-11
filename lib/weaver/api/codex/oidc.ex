@@ -86,8 +86,19 @@ defmodule Weaver.Api.Codex.Oidc do
 
     # TODO: confirm the states match
     tokens = exchange_code_for_token(code_key, code_resp)
-    # TODO: confirm the token is valid? Am I able to w/o a public key?
+
     GenServer.reply(reply_to, tokens["access_token"])
+    send_refresh_message(tokens)
+
+    {:noreply, %__MODULE__{state | tokens: tokens}}
+  end
+
+  @impl true
+  def handle_info(:refresh, state = %__MODULE__{tokens: %{"refresh_token" => refresh_token}}) do
+    dbg(state)
+
+    tokens = refresh_tokens(refresh_token) |> dbg()
+    send_refresh_message(tokens)
 
     {:noreply, %__MODULE__{state | tokens: tokens}}
   end
@@ -104,6 +115,7 @@ defmodule Weaver.Api.Codex.Oidc do
   end
 
   defp authorization_url(code_key, state_id) do
+    # https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.1
     %URI{
       URI.parse(@authorization_url)
       | query:
@@ -140,7 +152,6 @@ defmodule Weaver.Api.Codex.Oidc do
   end
 
   defp exchange_code_for_token(code_key, code) do
-    # TODO: set appropriate headers
     Req.post!(
       [url: @token_url, headers: %{"Content-Type": "application/x-www-form-urlencoded"}],
       form: [
@@ -151,6 +162,23 @@ defmodule Weaver.Api.Codex.Oidc do
         code_verifier: code_key
       ]
     ).body
+  end
+
+  defp refresh_tokens(refresh_token) do
+    # https://datatracker.ietf.org/doc/html/rfc6749#section-6
+    Req.post!(
+      [url: @token_url, headers: %{"Content-Type": "application/x-www-form-urlencoded"}],
+      form: [
+        grant_type: "refresh_token",
+        refresh_token: refresh_token,
+        client_id: @client_id
+      ]
+    ).body
+  end
+
+  defp send_refresh_message(tokens) do
+    refresh_after_ms = (tokens["expires_in"] - 600) * 1000
+    Process.send_after(self(), :refresh, refresh_after_ms)
   end
 
   def get_token do
