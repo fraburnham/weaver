@@ -57,7 +57,9 @@ defmodule Weaver.Api.Codex do
     |> Map.drop([:messages, :options])
     |> Map.put(:input, context.messages)
     |> update_in([:tools], fn
-      tools when is_nil(tools) -> nil
+      tools when is_nil(tools) ->
+        nil
+
       tools ->
         Enum.map(tools, fn t ->
           Map.drop(t, [:function])
